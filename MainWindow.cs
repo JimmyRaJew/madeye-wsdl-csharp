@@ -1,24 +1,21 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 
 namespace MadeyeWsdlCSharp;
 
 public sealed class MainWindow : Window
 {
-    private static readonly Color BackgroundTop = Color.FromRgb(15, 23, 42);
-    private static readonly Color BackgroundBottom = Color.FromRgb(30, 41, 59);
-    private static readonly Color CardFill = Color.FromRgb(248, 250, 252);
+    private static readonly Color CardFill = Color.FromRgb(255, 255, 255);
     private static readonly Color CardStroke = Color.FromRgb(226, 232, 240);
-    private static readonly Color DarkPanel = Color.FromRgb(8, 15, 32);
+    private static readonly Color SoftFill = Color.FromRgb(248, 250, 252);
 
     private readonly VisionA64Client _client = new();
-    private readonly Button _systemCheckButton = new();
-    private readonly Button _systemCheckExtraButton = new();
+    private readonly List<Button> _actionButtons = new();
+
+    private readonly Button _menuButton = new();
+    private readonly Border _menuPanel = new();
     private readonly TextBlock _operationLabel = new();
     private readonly TextBlock _resultLabel = new();
     private readonly TextBlock _errorLabel = new();
@@ -30,12 +27,12 @@ public sealed class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "VisionA64 C# Console";
+        Title = "VisionA64 Console";
         Width = 1180;
         Height = 760;
         MinWidth = 980;
         MinHeight = 680;
-        Background = new SolidColorBrush(BackgroundBottom);
+        Background = Brushes.White;
 
         Content = BuildRoot();
         SetIdleState();
@@ -45,36 +42,56 @@ public sealed class MainWindow : Window
     {
         var root = new Grid
         {
-            Margin = new Thickness(24),
-            RowDefinitions = new RowDefinitions("Auto,*")
+            Margin = new Thickness(16),
+            RowDefinitions = new RowDefinitions("Auto,*"),
+            Background = Brushes.White
         };
 
-        root.Children.Add(BuildHeader());
+        root.Children.Add(BuildTopBar());
+
         var body = BuildBody();
         Grid.SetRow(body, 1);
         root.Children.Add(body);
+
+        ConfigureMenuPanel();
+        Grid.SetRowSpan(_menuPanel, 2);
+        root.Children.Add(_menuPanel);
+
         return root;
     }
 
-    private Control BuildHeader()
+    private Control BuildTopBar()
     {
         var header = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
-            Margin = new Thickness(0, 0, 0, 24),
-            Height = 84
+            ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"),
+            Margin = new Thickness(0, 0, 0, 12),
+            VerticalAlignment = VerticalAlignment.Center
         };
+
+        _menuButton.Content = "☰";
+        _menuButton.Width = 44;
+        _menuButton.Height = 36;
+        _menuButton.FontSize = 18;
+        _menuButton.FontWeight = FontWeight.Bold;
+        _menuButton.Background = Brushes.White;
+        _menuButton.BorderBrush = new SolidColorBrush(CardStroke);
+        _menuButton.BorderThickness = new Thickness(1);
+        _menuButton.Click += (_, _) => ToggleMenu();
+
+        header.Children.Add(_menuButton);
 
         var titleStack = new StackPanel
         {
-            Spacing = 4,
-            VerticalAlignment = VerticalAlignment.Center
+            Spacing = 2,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(12, 0, 0, 0)
         };
 
         titleStack.Children.Add(new TextBlock
         {
             Text = "VisionA64 Console",
-            Foreground = Brushes.White,
+            Foreground = new SolidColorBrush(Color.FromRgb(15, 23, 42)),
             FontSize = 28,
             FontWeight = FontWeight.Bold
         });
@@ -82,26 +99,29 @@ public sealed class MainWindow : Window
         titleStack.Children.Add(new TextBlock
         {
             Text = "Clean SOAP controls for the VisionA64 camera",
-            Foreground = new SolidColorBrush(Color.FromRgb(191, 219, 254)),
+            Foreground = new SolidColorBrush(Color.FromRgb(71, 85, 105)),
             FontSize = 14
         });
 
+        Grid.SetColumn(titleStack, 1);
         header.Children.Add(titleStack);
 
         var endpoint = new Border
         {
-            Background = new SolidColorBrush(Color.FromRgb(15, 118, 110)),
+            Background = new SolidColorBrush(Color.FromRgb(240, 249, 255)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(191, 219, 254)),
+            BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(12),
             Padding = new Thickness(14, 10),
             VerticalAlignment = VerticalAlignment.Center,
             Child = new TextBlock
             {
-                Text = "Device endpoint: http://192.168.18.244:8080/",
-                Foreground = Brushes.White,
+                Text = "Device endpoint 192.168.18.244:8080",
+                Foreground = new SolidColorBrush(Color.FromRgb(30, 64, 175)),
                 FontSize = 13
             }
         };
-        Grid.SetColumn(endpoint, 1);
+        Grid.SetColumn(endpoint, 2);
         header.Children.Add(endpoint);
 
         return header;
@@ -111,62 +131,12 @@ public sealed class MainWindow : Window
     {
         var body = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("320,*")
+            ColumnDefinitions = new ColumnDefinitions("*")
         };
-
-        body.Children.Add(BuildActionsCard());
 
         var resultsCard = BuildResultsCard();
-        Grid.SetColumn(resultsCard, 1);
         body.Children.Add(resultsCard);
         return body;
-    }
-
-    private Control BuildActionsCard()
-    {
-        var card = new CardBorder(DarkPanel, CardStroke)
-        {
-            Padding = new Thickness(22),
-            Margin = new Thickness(0, 0, 24, 0)
-        };
-
-        var stack = new StackPanel { Spacing = 14 };
-        stack.Children.Add(new TextBlock
-        {
-            Text = "Actions",
-            Foreground = Brushes.White,
-            FontSize = 22,
-            FontWeight = FontWeight.Bold
-        });
-
-        stack.Children.Add(new TextBlock
-        {
-            Text = "Run a quick health check or the extended diagnostic report from the camera.",
-            Foreground = new SolidColorBrush(Color.FromRgb(203, 213, 225)),
-            TextWrapping = TextWrapping.Wrap,
-            Width = 260
-        });
-
-        _systemCheckButton.Content = "System Check";
-        StyleButton(_systemCheckButton, Color.FromRgb(14, 165, 233));
-        _systemCheckButton.Click += async (_, _) => await RunAsync("System Check", () => _client.SystemCheckAsync(1));
-
-        _systemCheckExtraButton.Content = "System Check Extra";
-        StyleButton(_systemCheckExtraButton, Color.FromRgb(168, 85, 247));
-        _systemCheckExtraButton.Click += async (_, _) => await RunAsync("System Check Extra", () => _client.SystemCheckExtraAsync(1));
-
-        _progressBar.IsVisible = false;
-        _progressBar.IsIndeterminate = true;
-
-        _statusLabel.Foreground = new SolidColorBrush(Color.FromRgb(191, 219, 254));
-        _statusLabel.FontSize = 13;
-
-        stack.Children.Add(_systemCheckButton);
-        stack.Children.Add(_systemCheckExtraButton);
-        stack.Children.Add(_progressBar);
-        stack.Children.Add(_statusLabel);
-        card.Child = stack;
-        return card;
     }
 
     private Control BuildResultsCard()
@@ -178,7 +148,13 @@ public sealed class MainWindow : Window
 
         var main = new Grid
         {
-            RowDefinitions = new RowDefinitions("Auto,Auto,240,*")
+            RowDefinitions = new RowDefinitions("Auto,Auto,Auto,*")
+        };
+
+        var headerRow = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+            Margin = new Thickness(0, 0, 0, 18)
         };
 
         var header = new StackPanel { Spacing = 6 };
@@ -190,9 +166,9 @@ public sealed class MainWindow : Window
             FontWeight = FontWeight.Bold
         });
 
-        header.Children.Add(_operationLabel);
         _operationLabel.Foreground = new SolidColorBrush(Color.FromRgb(71, 85, 105));
         _operationLabel.FontSize = 14;
+        header.Children.Add(_operationLabel);
 
         _statusChip.Background = new SolidColorBrush(Color.FromRgb(100, 116, 139));
         _statusChip.CornerRadius = new CornerRadius(999);
@@ -205,15 +181,9 @@ public sealed class MainWindow : Window
             FontWeight = FontWeight.Bold
         };
 
-        var headerRow = new Grid
-        {
-            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
-            Margin = new Thickness(0, 0, 0, 18)
-        };
         headerRow.Children.Add(header);
         Grid.SetColumn(_statusChip, 1);
         headerRow.Children.Add(_statusChip);
-
         main.Children.Add(headerRow);
 
         var summary = new Grid
@@ -274,6 +244,28 @@ public sealed class MainWindow : Window
         main.Children.Add(reportCard);
         Grid.SetRow(reportCard, 3);
 
+        var footer = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new Thickness(0, 10, 0, 0)
+        };
+
+        _progressBar.IsVisible = false;
+        _progressBar.IsIndeterminate = true;
+        _progressBar.Width = 220;
+        _progressBar.Margin = new Thickness(0, 0, 12, 0);
+
+        _statusLabel.Foreground = new SolidColorBrush(Color.FromRgb(100, 116, 139));
+        _statusLabel.FontSize = 12;
+        _statusLabel.VerticalAlignment = VerticalAlignment.Center;
+
+        footer.Children.Add(_progressBar);
+        footer.Children.Add(_statusLabel);
+        Grid.SetRow(footer, 4);
+        main.RowDefinitions = new RowDefinitions("Auto,Auto,Auto,*,Auto");
+        main.Children.Add(footer);
+
         card.Child = main;
         return card;
     }
@@ -282,8 +274,7 @@ public sealed class MainWindow : Window
     {
         var box = new CardBorder(Colors.White, CardStroke)
         {
-            Padding = new Thickness(16),
-            Margin = new Thickness(0, 0, 12, 0)
+            Padding = new Thickness(16)
         };
 
         var stack = new StackPanel { Spacing = 6 };
@@ -303,16 +294,87 @@ public sealed class MainWindow : Window
         return box;
     }
 
-    private static void StyleButton(Button button, Color color)
+    private void ConfigureMenuPanel()
     {
-        button.Height = 54;
-        button.FontSize = 14;
-        button.FontWeight = FontWeight.SemiBold;
-        button.Background = new SolidColorBrush(color);
-        button.Foreground = Brushes.White;
-        button.BorderThickness = new Thickness(0);
-        button.HorizontalAlignment = HorizontalAlignment.Stretch;
-        button.Margin = new Thickness(0, 0, 0, 0);
+        _menuPanel.Width = 280;
+        _menuPanel.IsVisible = false;
+        _menuPanel.Background = Brushes.White;
+        _menuPanel.BorderBrush = new SolidColorBrush(CardStroke);
+        _menuPanel.BorderThickness = new Thickness(1);
+        _menuPanel.CornerRadius = new CornerRadius(18);
+        _menuPanel.HorizontalAlignment = HorizontalAlignment.Left;
+        _menuPanel.VerticalAlignment = VerticalAlignment.Top;
+        _menuPanel.Margin = new Thickness(0, 52, 0, 0);
+        _menuPanel.BoxShadow = new BoxShadows(new BoxShadow
+        {
+            Color = Color.FromArgb(28, 15, 23, 42),
+            Blur = 18,
+            OffsetX = 0,
+            OffsetY = 8
+        });
+
+        var panel = new StackPanel
+        {
+            Spacing = 8,
+            Margin = new Thickness(12)
+        };
+
+        panel.Children.Add(BuildMenuSection("Quick Checks",
+            BuildMenuButton("System Check", async () => await RunAsync("System Check", () => _client.SystemCheckAsync(1))),
+            BuildMenuButton("System Check Extra", async () => await RunAsync("System Check Extra", () => _client.SystemCheckExtraAsync(1)))));
+
+        _menuPanel.Child = panel;
+    }
+
+    private Control BuildMenuSection(string title, params Button[] buttons)
+    {
+        var stack = new StackPanel { Spacing = 6 };
+
+        stack.Children.Add(new TextBlock
+        {
+            Text = title,
+            Foreground = new SolidColorBrush(Color.FromRgb(100, 116, 139)),
+            FontSize = 12,
+            FontWeight = FontWeight.Bold,
+            Margin = new Thickness(6, 4, 6, 2)
+        });
+
+        foreach (var button in buttons)
+        {
+            stack.Children.Add(button);
+        }
+
+        return stack;
+    }
+
+    private Button BuildMenuButton(string title, Func<Task> action)
+    {
+        var button = new Button
+        {
+            Content = title,
+            HorizontalContentAlignment = HorizontalAlignment.Left,
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(CardStroke),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(12),
+            Margin = new Thickness(0, 0, 0, 0),
+            Padding = new Thickness(12, 10),
+            FontSize = 14
+        };
+
+        button.Click += async (_, _) =>
+        {
+            _menuPanel.IsVisible = false;
+            await action();
+        };
+
+        _actionButtons.Add(button);
+        return button;
+    }
+
+    private void ToggleMenu()
+    {
+        _menuPanel.IsVisible = !_menuPanel.IsVisible;
     }
 
     private async Task RunAsync(string operation, Func<Task<SoapResult>> action)
@@ -343,6 +405,7 @@ public sealed class MainWindow : Window
 
         PopulateDetails(result.Details);
         PopulateReport(result.ReportLines);
+        _statusLabel.Text = $"Last run: {result.Operation}";
     }
 
     private void ShowError(string operation, Exception ex)
@@ -354,6 +417,7 @@ public sealed class MainWindow : Window
 
         PopulateDetails(new Dictionary<string, string>());
         PopulateReport(new[] { "The request could not be completed." });
+        _statusLabel.Text = "Last run failed";
     }
 
     private void PopulateDetails(IReadOnlyDictionary<string, string> details)
@@ -385,10 +449,9 @@ public sealed class MainWindow : Window
 
     private static Control BuildDetailRow(string key, string value)
     {
-        var row = new CardBorder(Color.FromRgb(248, 250, 252), CardStroke)
+        var row = new CardBorder(SoftFill, CardStroke)
         {
-            Padding = new Thickness(14, 12),
-            Margin = new Thickness(0, 0, 0, 0)
+            Padding = new Thickness(14, 12)
         };
 
         var grid = new Grid
@@ -422,8 +485,11 @@ public sealed class MainWindow : Window
     private void SetBusy(bool busy, string status)
     {
         _progressBar.IsVisible = busy;
-        _systemCheckButton.IsEnabled = !busy;
-        _systemCheckExtraButton.IsEnabled = !busy;
+        _menuButton.IsEnabled = !busy;
+        foreach (var button in _actionButtons)
+        {
+            button.IsEnabled = !busy;
+        }
         _statusLabel.Text = status;
 
         if (busy)
@@ -437,8 +503,8 @@ public sealed class MainWindow : Window
         _statusLabel.Text = "Idle";
         SetStatusChip("READY", Color.FromRgb(100, 116, 139));
         _resultLabel.Text = "No data yet";
-        _errorLabel.Text = "";
-        _reportBox.Text = "Run one of the checks to see the camera response here.";
+        _errorLabel.Text = "No request has run yet";
+        _reportBox.Text = "Use the burger menu at the top-left to start.";
     }
 
     private void SetStatusChip(string text, Color background)
@@ -460,4 +526,5 @@ public sealed class MainWindow : Window
             CornerRadius = new CornerRadius(24);
         }
     }
+
 }

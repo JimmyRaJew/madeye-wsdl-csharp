@@ -6,10 +6,11 @@ It mirrors the Java app:
 
 - `System Check`
 - `System Check Extra`
-- a small desktop UI
+- a clean white desktop UI
+- a top-left burger menu for actions
 - SOAP calls to the VisionA64 camera
 
-The UI is now built with **Avalonia**, so the same project can run on macOS and Windows.
+The UI is built with **Avalonia**, so the same project can run on macOS and Windows.
 
 ## Requirements
 
@@ -39,6 +40,7 @@ This works on macOS and Windows as long as the Avalonia dependencies can be rest
 
 The UI shows:
 
+- a burger menu in the top-left corner
 - result code
 - error message
 - structured detail fields
