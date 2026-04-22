@@ -1,12 +1,20 @@
+using Avalonia;
+
 namespace MadeyeWsdlCSharp;
 
 internal static class Program
 {
     [STAThread]
-    private static void Main()
+    public static void Main(string[] args)
     {
-        ApplicationConfiguration.Initialize();
-        Application.Run(new MainForm());
+        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+    }
+
+    private static AppBuilder BuildAvaloniaApp()
+    {
+        return AppBuilder.Configure<App>()
+            .UsePlatformDetect()
+            .LogToTrace();
     }
 }
 

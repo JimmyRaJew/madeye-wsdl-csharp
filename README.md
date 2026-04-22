@@ -9,10 +9,11 @@ It mirrors the Java app:
 - a small desktop UI
 - SOAP calls to the VisionA64 camera
 
+The UI is now built with **Avalonia**, so the same project can run on macOS and Windows.
+
 ## Requirements
 
 - .NET 8 SDK
-- Windows desktop support for WinForms
 - Network access to the camera
 
 ## Current Camera Endpoint
@@ -25,18 +26,14 @@ http://192.168.18.244:8080/
 
 ## Build And Run
 
-On Windows:
+From the repo folder:
 
 ```bash
 dotnet build
 dotnet run
 ```
 
-If you are building on a non-Windows machine, you may need:
-
-```bash
-dotnet build -p:EnableWindowsTargeting=true
-```
+This works on macOS and Windows as long as the Avalonia dependencies can be restored.
 
 ## What The App Does
 
@@ -53,7 +50,8 @@ The SOAP client sends `Type=1` for the two current actions.
 
 ```text
 Program.cs
-MainForm.cs
+App.cs
+MainWindow.cs
 VisionA64Client.cs
 SoapResult.cs
 MadeyeWsdlCSharp.csproj
@@ -66,6 +64,5 @@ The next steps are the same as the Java app:
 
 1. add one WSDL operation at a time
 2. keep request/response handling in the client layer
-3. keep screen rendering in the form layer
+3. keep screen rendering in the UI layer
 4. document each camera action as it is added
-
