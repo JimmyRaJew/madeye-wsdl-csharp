@@ -50,6 +50,58 @@ internal sealed class VisionA64Client
             cancellationToken);
     }
 
+    public Task<SoapResult> SystemDeviceIdGetAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeSingleValueAsync(
+            "SystemDeviceIDGet",
+            "SystemDeviceIDGetRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "DeviceID",
+            "DeviceID",
+            cancellationToken);
+    }
+
+    public Task<SoapResult> SystemDescriptionGetAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeDescriptionGetAsync(type, cancellationToken);
+    }
+
+    public Task<SoapResult> SystemDescriptionSetAsync(string label1, string label2, string label3, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "SystemDescriptionSet",
+            "SystemDescriptionSetRequest",
+            new Dictionary<string, string>
+            {
+                ["Label1"] = label1,
+                ["Label2"] = label2,
+                ["Label3"] = label3
+            },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> SystemRestartAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "SystemRestart",
+            "SystemRestartRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> SystemFirmwareUpdateAsync(byte[] fileData, string fileMd5Sum, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "SystemFirmwareUpdate",
+            "SystemFirmwareUpdateRequest",
+            new Dictionary<string, string>
+            {
+                ["FileData"] = Convert.ToBase64String(fileData),
+                ["FileMD5Sum"] = fileMd5Sum
+            },
+            cancellationToken);
+    }
+
     private async Task<SoapResult> InvokeAsync(
         string action,
         string requestElement,
@@ -94,6 +146,130 @@ internal sealed class VisionA64Client
             reportField,
             reportText,
             reportLines,
+            xml);
+    }
+
+    private async Task<SoapResult> InvokeResultOnlyAsync(
+        string action,
+        string requestElement,
+        IReadOnlyDictionary<string, string> requestFields,
+        CancellationToken cancellationToken)
+    {
+        var envelope = BuildEnvelope(requestElement, requestFields);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+        {
+            Content = new StringContent(envelope, Encoding.UTF8, "text/xml")
+        };
+
+        request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/soap+xml"));
+
+        using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        string xml = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        XDocument document = XDocument.Parse(xml);
+
+        int result = ParseInt(FirstText(document, "Result"), "Result");
+        string errorMessage = FirstText(document, "ErrorMessage");
+
+        return new SoapResult(
+            action,
+            result,
+            errorMessage,
+            new Dictionary<string, string>(),
+            "Result",
+            string.Empty,
+            new List<string>(),
+            xml);
+    }
+
+    private async Task<SoapResult> InvokeSingleValueAsync(
+        string action,
+        string requestElement,
+        IReadOnlyDictionary<string, string> requestFields,
+        string valueField,
+        string detailsField,
+        CancellationToken cancellationToken)
+    {
+        var envelope = BuildEnvelope(requestElement, requestFields);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+        {
+            Content = new StringContent(envelope, Encoding.UTF8, "text/xml")
+        };
+
+        request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/soap+xml"));
+
+        using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        string xml = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        XDocument document = XDocument.Parse(xml);
+
+        int result = ParseInt(FirstText(document, "Result"), "Result");
+        string errorMessage = FirstText(document, "ErrorMessage");
+        string value = FirstText(document, valueField);
+
+        return new SoapResult(
+            action,
+            result,
+            errorMessage,
+            new Dictionary<string, string> { [detailsField] = value },
+            detailsField,
+            value,
+            SplitLines(value),
+            xml);
+    }
+
+    private async Task<SoapResult> InvokeDescriptionGetAsync(int type, CancellationToken cancellationToken)
+    {
+        var envelope = BuildEnvelope(
+            "SystemDescriptionGetRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() });
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+        {
+            Content = new StringContent(envelope, Encoding.UTF8, "text/xml")
+        };
+
+        request.Headers.TryAddWithoutValidation("SOAPAction", "\"SystemDescriptionGet\"");
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/soap+xml"));
+
+        using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        string xml = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        XDocument document = XDocument.Parse(xml);
+
+        int result = ParseInt(FirstText(document, "Result"), "Result");
+        string errorMessage = FirstText(document, "ErrorMessage");
+        string label1 = FirstText(document, "Label1");
+        string label2 = FirstText(document, "Label2");
+        string label3 = FirstText(document, "Label3");
+
+        var details = new Dictionary<string, string>
+        {
+            ["Label1"] = label1,
+            ["Label2"] = label2,
+            ["Label3"] = label3
+        };
+
+        var lines = new List<string>();
+        if (!string.IsNullOrWhiteSpace(label1)) lines.Add(label1);
+        if (!string.IsNullOrWhiteSpace(label2)) lines.Add(label2);
+        if (!string.IsNullOrWhiteSpace(label3)) lines.Add(label3);
+
+        return new SoapResult(
+            "SystemDescriptionGet",
+            result,
+            errorMessage,
+            details,
+            "Description",
+            string.Join(Environment.NewLine, lines),
+            lines,
             xml);
     }
 
@@ -158,4 +334,3 @@ internal sealed class VisionA64Client
             .Replace("'", "&apos;");
     }
 }
-

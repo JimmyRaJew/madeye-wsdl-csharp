@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 
 namespace MadeyeWsdlCSharp;
 
@@ -323,6 +324,15 @@ public sealed class MainWindow : Window
             BuildMenuButton("System Check", async () => await RunAsync("System Check", () => _client.SystemCheckAsync(1))),
             BuildMenuButton("System Check Extra", async () => await RunAsync("System Check Extra", () => _client.SystemCheckExtraAsync(1)))));
 
+        panel.Children.Add(BuildMenuSection("System Settings",
+            BuildMenuButton("Device ID Get", async () => await RunAsync("System Device ID Get", () => _client.SystemDeviceIdGetAsync(1))),
+            BuildMenuButton("Description Get", async () => await RunAsync("System Description Get", () => _client.SystemDescriptionGetAsync(1))),
+            BuildMenuButton("Description Set", PromptAndRunDescriptionSet)));
+
+        panel.Children.Add(BuildMenuSection("Maintenance",
+            BuildMenuButton("System Restart", ConfirmAndRunRestart),
+            BuildMenuButton("Firmware Update", PromptAndRunFirmwareUpdate)));
+
         _menuPanel.Child = panel;
     }
 
@@ -375,6 +385,73 @@ public sealed class MainWindow : Window
     private void ToggleMenu()
     {
         _menuPanel.IsVisible = !_menuPanel.IsVisible;
+    }
+
+    private async Task ConfirmAndRunRestart()
+    {
+        bool confirmed = await ShowConfirmDialogAsync(
+            "Confirm System Restart",
+            "System Restart will reboot the camera after it responds. Continue?");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        await RunAsync("System Restart", () => _client.SystemRestartAsync(1));
+    }
+
+    private async Task PromptAndRunFirmwareUpdate()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select firmware ZIP file",
+            AllowMultiple = false
+        });
+
+        if (files.Count == 0)
+        {
+            return;
+        }
+
+        string? md5 = await ShowTextPromptAsync(
+            "Firmware MD5",
+            "Enter the first 32 characters of the MD5 sum:");
+
+        if (string.IsNullOrWhiteSpace(md5))
+        {
+            return;
+        }
+
+        try
+        {
+            using var stream = await files[0].OpenReadAsync();
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory);
+            await RunAsync("System Firmware Update", () => _client.SystemFirmwareUpdateAsync(memory.ToArray(), md5.Trim()));
+        }
+        catch (Exception ex)
+        {
+            ShowError("System Firmware Update", ex);
+        }
+    }
+
+    private async Task PromptAndRunDescriptionSet()
+    {
+        var labels = await ShowTriplePromptAsync(
+            "Set System Description",
+            "Label 1",
+            "Label 2",
+            "Label 3");
+
+        if (labels is null)
+        {
+            return;
+        }
+
+        await RunAsync(
+            "System Description Set",
+            () => _client.SystemDescriptionSetAsync(labels.Value.Label1, labels.Value.Label2, labels.Value.Label3));
     }
 
     private async Task RunAsync(string operation, Func<Task<SoapResult>> action)
@@ -514,6 +591,180 @@ public sealed class MainWindow : Window
         {
             child.Text = text;
         }
+    }
+
+    private async Task<bool> ShowConfirmDialogAsync(string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 440,
+            Height = 180,
+            CanResize = false,
+            Background = Brushes.White,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        bool confirmed = false;
+        dialog.Content = BuildDialogShell(
+            message,
+            new[]
+            {
+                BuildDialogButton("Cancel", () => dialog.Close()),
+                BuildDialogButton("Continue", () =>
+                {
+                    confirmed = true;
+                    dialog.Close();
+                })
+            });
+
+        await dialog.ShowDialog(this);
+        return confirmed;
+    }
+
+    private async Task<string?> ShowTextPromptAsync(string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 440,
+            Height = 190,
+            CanResize = false,
+            Background = Brushes.White,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var input = new TextBox { MinWidth = 320 };
+        string? value = null;
+
+        dialog.Content = BuildDialogShell(
+            message,
+            new Control[]
+            {
+                input,
+                BuildDialogButton("Cancel", () => dialog.Close()),
+                BuildDialogButton("OK", () =>
+                {
+                    value = input.Text;
+                    dialog.Close();
+                })
+            });
+
+        await dialog.ShowDialog(this);
+        return value;
+    }
+
+    private async Task<(string Label1, string Label2, string Label3)?> ShowTriplePromptAsync(
+        string title,
+        string label1,
+        string label2,
+        string label3)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 500,
+            Height = 300,
+            CanResize = false,
+            Background = Brushes.White,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var input1 = new TextBox();
+        var input2 = new TextBox();
+        var input3 = new TextBox();
+        (string Label1, string Label2, string Label3)? value = null;
+
+        var form = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("Auto,*"),
+            RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"),
+            RowSpacing = 10,
+            ColumnSpacing = 12,
+            Margin = new Thickness(20)
+        };
+
+        AddLabeledInput(form, label1, input1, 0);
+        AddLabeledInput(form, label2, input2, 1);
+        AddLabeledInput(form, label3, input3, 2);
+
+        var actions = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Spacing = 10
+        };
+
+        actions.Children.Add(BuildDialogButton("Cancel", () => dialog.Close()));
+        actions.Children.Add(BuildDialogButton("OK", () =>
+        {
+            value = (input1.Text?.Trim() ?? string.Empty, input2.Text?.Trim() ?? string.Empty, input3.Text?.Trim() ?? string.Empty);
+            dialog.Close();
+        }));
+
+        Grid.SetRow(actions, 3);
+        Grid.SetColumnSpan(actions, 2);
+        form.Children.Add(actions);
+
+        dialog.Content = form;
+        await dialog.ShowDialog(this);
+        return value;
+    }
+
+    private Control BuildDialogShell(string message, IEnumerable<Control> controls)
+    {
+        var stack = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Spacing = 16
+        };
+
+        stack.Children.Add(new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = new SolidColorBrush(Color.FromRgb(15, 23, 42))
+        });
+
+        foreach (var control in controls)
+        {
+            stack.Children.Add(control);
+        }
+
+        return stack;
+    }
+
+    private static void AddLabeledInput(Grid grid, string label, TextBox input, int row)
+    {
+        var text = new TextBlock
+        {
+            Text = label,
+            Foreground = new SolidColorBrush(Color.FromRgb(71, 85, 105)),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        grid.Children.Add(text);
+        Grid.SetRow(text, row);
+
+        input.MinWidth = 300;
+        grid.Children.Add(input);
+        Grid.SetRow(input, row);
+        Grid.SetColumn(input, 1);
+    }
+
+    private Button BuildDialogButton(string title, Action action)
+    {
+        var button = new Button
+        {
+            Content = title,
+            Padding = new Thickness(14, 8),
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(CardStroke),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(10)
+        };
+
+        button.Click += (_, _) => action();
+        return button;
     }
 
     private sealed class CardBorder : Border
