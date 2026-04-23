@@ -274,6 +274,84 @@ internal static class WebUi
       background: #fff;
     }
 
+    .menu-bar {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .menu-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .menu-tab {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--text);
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .menu-tab.active {
+      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+      border-color: #2563eb;
+      color: #fff;
+    }
+
+    .menu-dropdown {
+      display: none;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .menu-dropdown.open {
+      display: block;
+    }
+
+    .menu-dropdown-heading {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin: 2px 4px 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .menu-group-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .menu-group-tab {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--text);
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .menu-group-tab.active {
+      background: var(--accent-soft);
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
     .menu-drawer {
       position: fixed;
       left: 18px;
@@ -367,22 +445,22 @@ internal static class WebUi
 </head>
   <body>
   <div class="app">
-    <div class="menu-drawer" id="drawer">
-      <div class="menu-header">Menu</div>
-      <select class="menu-category" id="menuCategory"></select>
-      <select class="menu-subcategory" id="menuSubCategory"></select>
-      <div class="menu-items" id="menuItems"></div>
-    </div>
-
     <div class="topbar">
       <div class="brand">
-        <button class="menu-btn" id="menuBtn">☰</button>
         <div>
           <h1>VisionA64 Web Console</h1>
           <div class="subtitle">Browser UI for the VisionA64 camera SOAP service</div>
         </div>
       </div>
       <div class="endpoint">Device endpoint 192.168.18.244:8080</div>
+    </div>
+
+    <div class="menu-bar">
+      <div class="menu-tabs" id="menuTabs"></div>
+      <div class="menu-dropdown" id="menuDropdown">
+        <div class="menu-dropdown-heading" id="menuDropdownHeading">Menu</div>
+        <div id="menuDropdownBody"></div>
+      </div>
     </div>
 
     <div class="layout">
@@ -433,11 +511,10 @@ internal static class WebUi
   </div>
 
   <script>
-    const drawer = document.getElementById('drawer');
-    const menuBtn = document.getElementById('menuBtn');
-    const menuCategory = document.getElementById('menuCategory');
-    const menuSubCategory = document.getElementById('menuSubCategory');
-    const menuItems = document.getElementById('menuItems');
+    const menuTabs = document.getElementById('menuTabs');
+    const menuDropdown = document.getElementById('menuDropdown');
+    const menuDropdownHeading = document.getElementById('menuDropdownHeading');
+    const menuDropdownBody = document.getElementById('menuDropdownBody');
     const formShell = document.getElementById('formShell');
     const operationLabel = document.getElementById('operationLabel');
     const resultValue = document.getElementById('resultValue');
@@ -447,16 +524,6 @@ internal static class WebUi
     const rawXml = document.getElementById('rawXml');
     const statusChip = document.getElementById('statusChip');
     const statusText = document.getElementById('statusText');
-
-    menuBtn.addEventListener('click', () => {
-      drawer.classList.toggle('open');
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!drawer.contains(event.target) && event.target !== menuBtn && !menuBtn.contains(event.target)) {
-        drawer.classList.remove('open');
-      }
-    });
 
     const menuCategories = {
       'Quick Checks': {
@@ -511,12 +578,51 @@ internal static class WebUi
       }
     };
 
+    function renderTabs() {
+      menuTabs.innerHTML = '';
+      Object.keys(menuCategories).forEach((category) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'menu-tab';
+        button.textContent = category;
+        button.addEventListener('click', () => openMenu(category));
+        menuTabs.appendChild(button);
+      });
+    }
+
+    function setActiveTab(category) {
+      menuTabs.querySelectorAll('.menu-tab').forEach((button) => {
+        button.classList.toggle('active', button.textContent === category);
+      });
+    }
+
     function renderMenu(category, subcategory = null) {
-      menuItems.innerHTML = '';
       const config = menuCategories[category] || {};
       const items = category === 'Users'
         ? (config.subcategories?.[subcategory || 'Overview'] || [])
         : (config.items || []);
+
+      menuDropdown.classList.add('open');
+      menuDropdownHeading.textContent = category;
+      menuDropdownBody.innerHTML = '';
+
+      if (category === 'Users') {
+        const tabRow = document.createElement('div');
+        tabRow.className = 'menu-group-tabs';
+        Object.keys(config.subcategories || {}).forEach((groupName) => {
+          const tab = document.createElement('button');
+          tab.type = 'button';
+          tab.className = 'menu-group-tab';
+          tab.textContent = groupName;
+          tab.addEventListener('click', () => renderMenu(category, groupName));
+          tab.classList.toggle('active', groupName === (subcategory || 'Overview'));
+          tabRow.appendChild(tab);
+        });
+        menuDropdownBody.appendChild(tabRow);
+      }
+
+      const itemList = document.createElement('div');
+      itemList.className = 'menu-items';
       for (const [label, action] of items) {
         const button = document.createElement('button');
         button.className = 'menu-item';
@@ -524,44 +630,26 @@ internal static class WebUi
         button.textContent = label;
         button.dataset.action = action;
         button.addEventListener('click', async () => {
-          drawer.classList.remove('open');
+          menuDropdown.classList.remove('open');
           await handleAction(action);
         });
-        menuItems.appendChild(button);
+        itemList.appendChild(button);
       }
+      menuDropdownBody.appendChild(itemList);
+      setActiveTab(category);
     }
 
-    Object.keys(menuCategories).forEach((category) => {
-      const option = document.createElement('option');
-      option.value = category;
-      option.textContent = category;
-      menuCategory.appendChild(option);
-    });
-    menuCategory.value = 'Quick Checks';
-    const userSubcategories = ['Overview', 'Management'];
-    userSubcategories.forEach((subcategory) => {
-      const option = document.createElement('option');
-      option.value = subcategory;
-      option.textContent = subcategory;
-      menuSubCategory.appendChild(option);
-    });
-    menuSubCategory.value = 'Overview';
-    menuSubCategory.style.display = 'none';
-    renderMenu(menuCategory.value);
+    function openMenu(category) {
+      renderMenu(category, category === 'Users' ? 'Overview' : null);
+    }
 
-    menuCategory.addEventListener('change', () => {
-      const isUsers = menuCategory.value === 'Users';
-      menuSubCategory.style.display = isUsers ? 'block' : 'none';
-      if (isUsers) {
-        renderMenu(menuCategory.value, menuSubCategory.value);
-      } else {
-        renderMenu(menuCategory.value);
-      }
-    });
+    renderTabs();
+    openMenu('Quick Checks');
 
-    menuSubCategory.addEventListener('change', () => {
-      if (menuCategory.value === 'Users') {
-        renderMenu(menuCategory.value, menuSubCategory.value);
+    document.addEventListener('click', (event) => {
+      const clickedInside = menuTabs.contains(event.target) || menuDropdown.contains(event.target);
+      if (!clickedInside) {
+        menuDropdown.classList.remove('open');
       }
     });
 
