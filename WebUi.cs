@@ -292,9 +292,10 @@ internal static class WebUi
       border-radius: 999px;
       background: #fff;
       color: var(--text);
-      padding: 10px 14px;
+      padding: 7px 10px;
       font: inherit;
       font-weight: 600;
+      font-size: 12px;
       cursor: pointer;
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
@@ -311,8 +312,8 @@ internal static class WebUi
       border: 1px solid var(--border);
       border-radius: 20px;
       box-shadow: var(--shadow);
-      padding: 14px;
-      max-height: 320px;
+      padding: 12px;
+      max-height: 280px;
       overflow-y: auto;
     }
 
@@ -341,8 +342,9 @@ internal static class WebUi
       border-radius: 999px;
       background: #fff;
       color: var(--text);
-      padding: 8px 12px;
+      padding: 6px 9px;
       font: inherit;
+      font-size: 12px;
       cursor: pointer;
     }
 
@@ -350,59 +352,6 @@ internal static class WebUi
       background: var(--accent-soft);
       color: #1d4ed8;
       border-color: #bfdbfe;
-    }
-
-    .menu-drawer {
-      position: fixed;
-      left: 18px;
-      top: 70px;
-      width: 300px;
-      max-width: calc(100vw - 36px);
-      max-height: calc(100vh - 96px);
-      overflow-y: auto;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      padding: 14px;
-      display: none;
-      z-index: 20;
-    }
-
-    .menu-drawer.open { display: block; }
-
-    .menu-header {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      margin: 2px 6px 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .menu-category {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #fff;
-      padding: 10px 12px;
-      font: inherit;
-      color: var(--text);
-      margin-bottom: 12px;
-      outline: none;
-    }
-
-    .menu-subcategory {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #fff;
-      padding: 10px 12px;
-      font: inherit;
-      color: var(--text);
-      margin: -4px 0 12px;
-      outline: none;
-      display: none;
     }
 
     .menu-items {
@@ -416,11 +365,11 @@ internal static class WebUi
       display: block;
       border: 1px solid var(--border);
       background: #fff;
-      padding: 11px 12px;
-      border-radius: 12px;
-      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 11px;
       cursor: pointer;
       font: inherit;
+      font-size: 13px;
       color: var(--text);
     }
 
@@ -524,6 +473,8 @@ internal static class WebUi
     const rawXml = document.getElementById('rawXml');
     const statusChip = document.getElementById('statusChip');
     const statusText = document.getElementById('statusText');
+    let currentCategory = null;
+    let currentSubcategory = 'Overview';
 
     const menuCategories = {
       'Quick Checks': {
@@ -602,6 +553,8 @@ internal static class WebUi
         ? (config.subcategories?.[subcategory || 'Overview'] || [])
         : (config.items || []);
 
+      currentCategory = category;
+      currentSubcategory = subcategory || 'Overview';
       menuDropdown.classList.add('open');
       menuDropdownHeading.textContent = category;
       menuDropdownBody.innerHTML = '';
@@ -614,7 +567,10 @@ internal static class WebUi
           tab.type = 'button';
           tab.className = 'menu-group-tab';
           tab.textContent = groupName;
-          tab.addEventListener('click', () => renderMenu(category, groupName));
+          tab.addEventListener('click', (event) => {
+            event.stopPropagation();
+            renderMenu(category, groupName);
+          });
           tab.classList.toggle('active', groupName === (subcategory || 'Overview'));
           tabRow.appendChild(tab);
         });
@@ -629,7 +585,8 @@ internal static class WebUi
         button.type = 'button';
         button.textContent = label;
         button.dataset.action = action;
-        button.addEventListener('click', async () => {
+        button.addEventListener('click', async (event) => {
+          event.stopPropagation();
           menuDropdown.classList.remove('open');
           await handleAction(action);
         });
@@ -640,12 +597,19 @@ internal static class WebUi
     }
 
     function openMenu(category) {
-      renderMenu(category, category === 'Users' ? 'Overview' : null);
+      if (currentCategory === category && menuDropdown.classList.contains('open')) {
+        menuDropdown.classList.remove('open');
+        return;
+      }
+
+      renderMenu(category, category === 'Users' ? currentSubcategory || 'Overview' : null);
     }
 
     renderTabs();
-    openMenu('Quick Checks');
+    menuDropdown.classList.remove('open');
 
+    menuTabs.addEventListener('click', (event) => event.stopPropagation());
+    menuDropdown.addEventListener('click', (event) => event.stopPropagation());
     document.addEventListener('click', (event) => {
       const clickedInside = menuTabs.contains(event.target) || menuDropdown.contains(event.target);
       if (!clickedInside) {
