@@ -354,6 +354,19 @@ internal static class WebUi
         <button class="menu-item" data-action="system-restart">System Restart</button>
         <button class="menu-item" data-action="show-firmware-update">Firmware Update</button>
       </div>
+      <div class="menu-section">
+        <div class="menu-heading">Users</div>
+        <button class="menu-item" data-action="user-identify-count">Identify Count</button>
+        <button class="menu-item" data-action="user-identify-list-all">Identify List All</button>
+        <button class="menu-item" data-action="user-smartcard-count">Smartcard Count</button>
+        <button class="menu-item" data-action="user-smartcard-list-all">Smartcard List All</button>
+        <button class="menu-item" data-action="user-elevator-count">Elevator Count</button>
+        <button class="menu-item" data-action="user-elevator-list-all">Elevator List All</button>
+        <button class="menu-item" data-action="user-restricted-count">Restricted Count</button>
+        <button class="menu-item" data-action="user-restricted-list-all">Restricted List All</button>
+        <button class="menu-item" data-action="user-schedule-count">Schedule Count</button>
+        <button class="menu-item" data-action="user-schedule-list-all">Schedule List All</button>
+      </div>
     </div>
 
     <div class="topbar">
@@ -574,6 +587,36 @@ internal static class WebUi
           break;
         case 'show-firmware-update':
           showFirmwareForm();
+          break;
+        case 'user-identify-count':
+          await postEmpty('/api/user-identify-count', 'User Identify Count');
+          break;
+        case 'user-identify-list-all':
+          await postEmpty('/api/user-identify-list-all', 'User Identify List All');
+          break;
+        case 'user-smartcard-count':
+          await postEmpty('/api/user-smartcard-count', 'User Smartcard Count');
+          break;
+        case 'user-smartcard-list-all':
+          await postEmpty('/api/user-smartcard-list-all', 'User Smartcard List All');
+          break;
+        case 'user-elevator-count':
+          await postEmpty('/api/user-elevator-count', 'User Elevator Count');
+          break;
+        case 'user-elevator-list-all':
+          await postEmpty('/api/user-elevator-list-all', 'User Elevator List All');
+          break;
+        case 'user-restricted-count':
+          await postEmpty('/api/user-restricted-count', 'User Restricted Count');
+          break;
+        case 'user-restricted-list-all':
+          await postEmpty('/api/user-restricted-list-all', 'User Restricted List All');
+          break;
+        case 'user-schedule-count':
+          await postEmpty('/api/user-schedule-count', 'User Schedule Count');
+          break;
+        case 'user-schedule-list-all':
+          await postEmpty('/api/user-schedule-list-all', 'User Schedule List All');
           break;
       }
     }

@@ -102,6 +102,116 @@ internal sealed class VisionA64Client
             cancellationToken);
     }
 
+    public Task<SoapResult> UserIdentifyCountAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserIdentifyCount",
+            "UserIdentifyCountRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "Count",
+            Array.Empty<string>(),
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyListAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserIdentifyListAll",
+            "UserIdentifyListAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "IdentifyList",
+            new[] { "IdentifyNumber" },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserSmartcardCountAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserSmartcardCount",
+            "UserSmartcardCountRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "Count",
+            Array.Empty<string>(),
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserSmartcardListAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserSmartcardListAll",
+            "UserSmartcardListAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "SmartcardList",
+            new[] { "SmartcardNumber" },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserElevatorCountAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserElevatorCount",
+            "UserElevatorCountRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "Count",
+            Array.Empty<string>(),
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserElevatorListAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserElevatorListAll",
+            "UserElevatorListAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "List",
+            new[] { "Number" },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserRestrictedCountAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserRestrictedCount",
+            "UserRestrictedCountRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "Count",
+            Array.Empty<string>(),
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserRestrictedListAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserRestrictedListAll",
+            "UserRestrictedListAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "List",
+            new[] { "Number" },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserScheduleCountAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserScheduleCount",
+            "UserScheduleCountRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "Count",
+            Array.Empty<string>(),
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserScheduleListAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserScheduleListAll",
+            "UserScheduleListAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "List",
+            new[] { "Number" },
+            cancellationToken);
+    }
+
     private async Task<SoapResult> InvokeAsync(
         string action,
         string requestElement,

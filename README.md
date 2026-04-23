@@ -24,6 +24,7 @@ The current menu groups are:
 - `Quick Checks`
 - `System Settings`
 - `Maintenance`
+- `Users`
 
 The current implemented actions are:
 
@@ -34,6 +35,16 @@ The current implemented actions are:
 - `SystemDescriptionSet`
 - `SystemRestart`
 - `SystemFirmwareUpdate`
+- `UserIdentifyCount`
+- `UserIdentifyListAll`
+- `UserSmartcardCount`
+- `UserSmartcardListAll`
+- `UserElevatorCount`
+- `UserElevatorListAll`
+- `UserRestrictedCount`
+- `UserRestrictedListAll`
+- `UserScheduleCount`
+- `UserScheduleListAll`
 
 ## Camera Endpoint
 
@@ -91,6 +102,16 @@ Current routes:
 - `POST /api/system-description-set`
 - `POST /api/system-restart`
 - `POST /api/system-firmware-update`
+- `POST /api/user-identify-count`
+- `POST /api/user-identify-list-all`
+- `POST /api/user-smartcard-count`
+- `POST /api/user-smartcard-list-all`
+- `POST /api/user-elevator-count`
+- `POST /api/user-elevator-list-all`
+- `POST /api/user-restricted-count`
+- `POST /api/user-restricted-list-all`
+- `POST /api/user-schedule-count`
+- `POST /api/user-schedule-list-all`
 
 The browser UI calls those routes with `fetch`.
 
@@ -108,6 +129,12 @@ Read-style actions send `Type=1`.
 `SystemDescriptionSet` sends the three label fields.
 
 `SystemFirmwareUpdate` sends the ZIP payload as base64 plus the provided MD5 string.
+
+The current Users section is a read-only overview slice:
+
+- count operations use `Type=1`
+- list-all operations also use `Type=1`
+- the more complex add/update/delete user calls are intentionally deferred until this slice is stable
 
 ## Extending The App
 

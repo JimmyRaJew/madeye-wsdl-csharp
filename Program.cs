@@ -16,6 +16,16 @@ app.MapPost("/api/system-description-get", ExecuteSystemDescriptionGet);
 app.MapPost("/api/system-description-set", ExecuteSystemDescriptionSet);
 app.MapPost("/api/system-restart", ExecuteSystemRestart);
 app.MapPost("/api/system-firmware-update", ExecuteSystemFirmwareUpdate);
+app.MapPost("/api/user-identify-count", ExecuteUserIdentifyCount);
+app.MapPost("/api/user-identify-list-all", ExecuteUserIdentifyListAll);
+app.MapPost("/api/user-smartcard-count", ExecuteUserSmartcardCount);
+app.MapPost("/api/user-smartcard-list-all", ExecuteUserSmartcardListAll);
+app.MapPost("/api/user-elevator-count", ExecuteUserElevatorCount);
+app.MapPost("/api/user-elevator-list-all", ExecuteUserElevatorListAll);
+app.MapPost("/api/user-restricted-count", ExecuteUserRestrictedCount);
+app.MapPost("/api/user-restricted-list-all", ExecuteUserRestrictedListAll);
+app.MapPost("/api/user-schedule-count", ExecuteUserScheduleCount);
+app.MapPost("/api/user-schedule-list-all", ExecuteUserScheduleListAll);
 
 app.Run();
 
@@ -90,6 +100,56 @@ static async Task<IResult> ExecuteSystemFirmwareUpdate(VisionA64Client client, H
     }
 
     return await ExecuteSoap(client, cancellationToken, c => c.SystemFirmwareUpdateAsync(fileData, md5, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyCount(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyCountAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyListAll(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyListAllAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserSmartcardCount(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserSmartcardCountAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserSmartcardListAll(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserSmartcardListAllAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserElevatorCount(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserElevatorCountAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserElevatorListAll(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserElevatorListAllAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserRestrictedCount(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserRestrictedCountAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserRestrictedListAll(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserRestrictedListAllAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserScheduleCount(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserScheduleCountAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserScheduleListAll(VisionA64Client client, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserScheduleListAllAsync(1, cancellationToken));
 }
 
 static async Task<IResult> ExecuteSoap(
