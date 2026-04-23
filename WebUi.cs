@@ -109,7 +109,7 @@ internal static class WebUi
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
 
     .response-title {
@@ -139,22 +139,22 @@ internal static class WebUi
     .summary-grid {
       display: grid;
       grid-template-columns: 3fr 7fr;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 14px;
+      margin-bottom: 16px;
     }
 
     .mini-card {
       background: var(--surface-soft);
       border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 16px;
+      padding: 18px;
       min-height: 128px;
     }
 
     .mini-label {
       color: var(--muted);
       font-size: 13px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .result-value {
@@ -173,8 +173,8 @@ internal static class WebUi
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 16px;
-      margin-bottom: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
     }
 
     .section h2 {
@@ -223,7 +223,7 @@ internal static class WebUi
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .btn {
@@ -248,7 +248,7 @@ internal static class WebUi
     .form-shell {
       display: none;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .form-shell.active {
@@ -257,7 +257,7 @@ internal static class WebUi
 
     .form-grid {
       display: grid;
-      gap: 10px;
+      gap: 12px;
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
@@ -276,6 +276,7 @@ internal static class WebUi
 
     .menu-bar {
       margin-top: 10px;
+      margin-bottom: 18px;
       display: grid;
       gap: 10px;
     }
