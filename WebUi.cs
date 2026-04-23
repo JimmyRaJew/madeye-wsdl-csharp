@@ -314,6 +314,19 @@ internal static class WebUi
       outline: none;
     }
 
+    .menu-subcategory {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--text);
+      margin: -4px 0 12px;
+      outline: none;
+      display: none;
+    }
+
     .menu-items {
       display: grid;
       gap: 8px;
@@ -357,6 +370,7 @@ internal static class WebUi
     <div class="menu-drawer" id="drawer">
       <div class="menu-header">Menu</div>
       <select class="menu-category" id="menuCategory"></select>
+      <select class="menu-subcategory" id="menuSubCategory"></select>
       <div class="menu-items" id="menuItems"></div>
     </div>
 
@@ -422,6 +436,7 @@ internal static class WebUi
     const drawer = document.getElementById('drawer');
     const menuBtn = document.getElementById('menuBtn');
     const menuCategory = document.getElementById('menuCategory');
+    const menuSubCategory = document.getElementById('menuSubCategory');
     const menuItems = document.getElementById('menuItems');
     const formShell = document.getElementById('formShell');
     const operationLabel = document.getElementById('operationLabel');
@@ -444,51 +459,64 @@ internal static class WebUi
     });
 
     const menuCategories = {
-      'Quick Checks': [
-        ['System Check', 'system-check'],
-        ['System Check Extra', 'system-check-extra']
-      ],
-      'System Settings': [
-        ['Device ID Get', 'system-device-id-get'],
-        ['Description Get', 'system-description-get'],
-        ['Description Set', 'show-description-set']
-      ],
-      'Maintenance': [
-        ['System Restart', 'system-restart'],
-        ['Firmware Update', 'show-firmware-update']
-      ],
-      'Users Overview': [
-        ['Identify Count', 'user-identify-count'],
-        ['Identify List All', 'user-identify-list-all'],
-        ['Smartcard Count', 'user-smartcard-count'],
-        ['Smartcard List All', 'user-smartcard-list-all'],
-        ['Elevator Count', 'user-elevator-count'],
-        ['Elevator List All', 'user-elevator-list-all'],
-        ['Restricted Count', 'user-restricted-count'],
-        ['Restricted List All', 'user-restricted-list-all'],
-        ['Schedule Count', 'user-schedule-count'],
-        ['Schedule List All', 'user-schedule-list-all']
-      ],
-      'User Management': [
-        ['Identify Add', 'user-identify-add'],
-        ['Identify Delete', 'user-identify-delete'],
-        ['Identify Delete All', 'user-identify-delete-all'],
-        ['Identify List', 'user-identify-list'],
-        ['Identify Check', 'user-identify-check'],
-        ['Identify Template', 'user-identify-template'],
-        ['Identify Activate', 'user-identify-activate'],
-        ['Identify Deactivate', 'user-identify-deactivate'],
-        ['Identify Activate All', 'user-identify-activate-all'],
-        ['Restrict Enable', 'user-identify-restrict-enable'],
-        ['Time Activate', 'user-identify-time-activate'],
-        ['Time Deactivate', 'user-identify-time-deactivate'],
-        ['Time Deactivate All', 'user-identify-time-deactivate-all']
-      ]
+      'Quick Checks': {
+        items: [
+          ['System Check', 'system-check'],
+          ['System Check Extra', 'system-check-extra']
+        ]
+      },
+      'System Settings': {
+        items: [
+          ['Device ID Get', 'system-device-id-get'],
+          ['Description Get', 'system-description-get'],
+          ['Description Set', 'show-description-set']
+        ]
+      },
+      'Maintenance': {
+        items: [
+          ['System Restart', 'system-restart'],
+          ['Firmware Update', 'show-firmware-update']
+        ]
+      },
+      'Users': {
+        subcategories: {
+          Overview: [
+            ['Identify Count', 'user-identify-count'],
+            ['Identify List All', 'user-identify-list-all'],
+            ['Smartcard Count', 'user-smartcard-count'],
+            ['Smartcard List All', 'user-smartcard-list-all'],
+            ['Elevator Count', 'user-elevator-count'],
+            ['Elevator List All', 'user-elevator-list-all'],
+            ['Restricted Count', 'user-restricted-count'],
+            ['Restricted List All', 'user-restricted-list-all'],
+            ['Schedule Count', 'user-schedule-count'],
+            ['Schedule List All', 'user-schedule-list-all']
+          ],
+          Management: [
+            ['Identify Add', 'user-identify-add'],
+            ['Identify Delete', 'user-identify-delete'],
+            ['Identify Delete All', 'user-identify-delete-all'],
+            ['Identify List', 'user-identify-list'],
+            ['Identify Check', 'user-identify-check'],
+            ['Identify Template', 'user-identify-template'],
+            ['Identify Activate', 'user-identify-activate'],
+            ['Identify Deactivate', 'user-identify-deactivate'],
+            ['Identify Activate All', 'user-identify-activate-all'],
+            ['Restrict Enable', 'user-identify-restrict-enable'],
+            ['Time Activate', 'user-identify-time-activate'],
+            ['Time Deactivate', 'user-identify-time-deactivate'],
+            ['Time Deactivate All', 'user-identify-time-deactivate-all']
+          ]
+        }
+      }
     };
 
-    function renderMenu(category) {
+    function renderMenu(category, subcategory = null) {
       menuItems.innerHTML = '';
-      const items = menuCategories[category] || [];
+      const config = menuCategories[category] || {};
+      const items = category === 'Users'
+        ? (config.subcategories?.[subcategory || 'Overview'] || [])
+        : (config.items || []);
       for (const [label, action] of items) {
         const button = document.createElement('button');
         button.className = 'menu-item';
@@ -510,10 +538,31 @@ internal static class WebUi
       menuCategory.appendChild(option);
     });
     menuCategory.value = 'Quick Checks';
+    const userSubcategories = ['Overview', 'Management'];
+    userSubcategories.forEach((subcategory) => {
+      const option = document.createElement('option');
+      option.value = subcategory;
+      option.textContent = subcategory;
+      menuSubCategory.appendChild(option);
+    });
+    menuSubCategory.value = 'Overview';
+    menuSubCategory.style.display = 'none';
     renderMenu(menuCategory.value);
 
     menuCategory.addEventListener('change', () => {
-      renderMenu(menuCategory.value);
+      const isUsers = menuCategory.value === 'Users';
+      menuSubCategory.style.display = isUsers ? 'block' : 'none';
+      if (isUsers) {
+        renderMenu(menuCategory.value, menuSubCategory.value);
+      } else {
+        renderMenu(menuCategory.value);
+      }
+    });
+
+    menuSubCategory.addEventListener('change', () => {
+      if (menuCategory.value === 'Users') {
+        renderMenu(menuCategory.value, menuSubCategory.value);
+      }
     });
 
     function setStatus(text, kind) {
