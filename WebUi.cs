@@ -293,15 +293,30 @@ internal static class WebUi
 
     .menu-drawer.open { display: block; }
 
-    .menu-section + .menu-section { margin-top: 12px; }
-
-    .menu-heading {
+    .menu-header {
       color: var(--muted);
       font-size: 12px;
       font-weight: 800;
-      margin: 2px 6px 8px;
+      margin: 2px 6px 10px;
       text-transform: uppercase;
       letter-spacing: 0.03em;
+    }
+
+    .menu-category {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--text);
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    .menu-items {
+      display: grid;
+      gap: 8px;
     }
 
     .menu-item {
@@ -337,54 +352,12 @@ internal static class WebUi
     }
   </style>
 </head>
-<body>
+  <body>
   <div class="app">
     <div class="menu-drawer" id="drawer">
-      <div class="menu-section">
-        <div class="menu-heading">Quick Checks</div>
-        <button class="menu-item" data-action="system-check">System Check</button>
-        <button class="menu-item" data-action="system-check-extra">System Check Extra</button>
-      </div>
-      <div class="menu-section">
-        <div class="menu-heading">System Settings</div>
-        <button class="menu-item" data-action="system-device-id-get">Device ID Get</button>
-        <button class="menu-item" data-action="system-description-get">Description Get</button>
-        <button class="menu-item" data-action="show-description-set">Description Set</button>
-      </div>
-      <div class="menu-section">
-        <div class="menu-heading">Maintenance</div>
-        <button class="menu-item" data-action="system-restart">System Restart</button>
-        <button class="menu-item" data-action="show-firmware-update">Firmware Update</button>
-      </div>
-      <div class="menu-section">
-        <div class="menu-heading">Users</div>
-        <button class="menu-item" data-action="user-identify-count">Identify Count</button>
-        <button class="menu-item" data-action="user-identify-list-all">Identify List All</button>
-        <button class="menu-item" data-action="user-smartcard-count">Smartcard Count</button>
-        <button class="menu-item" data-action="user-smartcard-list-all">Smartcard List All</button>
-        <button class="menu-item" data-action="user-elevator-count">Elevator Count</button>
-        <button class="menu-item" data-action="user-elevator-list-all">Elevator List All</button>
-        <button class="menu-item" data-action="user-restricted-count">Restricted Count</button>
-        <button class="menu-item" data-action="user-restricted-list-all">Restricted List All</button>
-        <button class="menu-item" data-action="user-schedule-count">Schedule Count</button>
-        <button class="menu-item" data-action="user-schedule-list-all">Schedule List All</button>
-      </div>
-      <div class="menu-section">
-        <div class="menu-heading">User Management</div>
-        <button class="menu-item" data-action="user-identify-add">Identify Add</button>
-        <button class="menu-item" data-action="user-identify-delete">Identify Delete</button>
-        <button class="menu-item" data-action="user-identify-delete-all">Identify Delete All</button>
-        <button class="menu-item" data-action="user-identify-list">Identify List</button>
-        <button class="menu-item" data-action="user-identify-check">Identify Check</button>
-        <button class="menu-item" data-action="user-identify-template">Identify Template</button>
-        <button class="menu-item" data-action="user-identify-activate">Identify Activate</button>
-        <button class="menu-item" data-action="user-identify-deactivate">Identify Deactivate</button>
-        <button class="menu-item" data-action="user-identify-activate-all">Identify Activate All</button>
-        <button class="menu-item" data-action="user-identify-restrict-enable">Restrict Enable</button>
-        <button class="menu-item" data-action="user-identify-time-activate">Time Activate</button>
-        <button class="menu-item" data-action="user-identify-time-deactivate">Time Deactivate</button>
-        <button class="menu-item" data-action="user-identify-time-deactivate-all">Time Deactivate All</button>
-      </div>
+      <div class="menu-header">Menu</div>
+      <select class="menu-category" id="menuCategory"></select>
+      <div class="menu-items" id="menuItems"></div>
     </div>
 
     <div class="topbar">
@@ -448,6 +421,8 @@ internal static class WebUi
   <script>
     const drawer = document.getElementById('drawer');
     const menuBtn = document.getElementById('menuBtn');
+    const menuCategory = document.getElementById('menuCategory');
+    const menuItems = document.getElementById('menuItems');
     const formShell = document.getElementById('formShell');
     const operationLabel = document.getElementById('operationLabel');
     const resultValue = document.getElementById('resultValue');
@@ -468,12 +443,77 @@ internal static class WebUi
       }
     });
 
-    drawer.querySelectorAll('[data-action]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        const action = button.dataset.action;
-        drawer.classList.remove('open');
-        await handleAction(action);
-      });
+    const menuCategories = {
+      'Quick Checks': [
+        ['System Check', 'system-check'],
+        ['System Check Extra', 'system-check-extra']
+      ],
+      'System Settings': [
+        ['Device ID Get', 'system-device-id-get'],
+        ['Description Get', 'system-description-get'],
+        ['Description Set', 'show-description-set']
+      ],
+      'Maintenance': [
+        ['System Restart', 'system-restart'],
+        ['Firmware Update', 'show-firmware-update']
+      ],
+      'Users Overview': [
+        ['Identify Count', 'user-identify-count'],
+        ['Identify List All', 'user-identify-list-all'],
+        ['Smartcard Count', 'user-smartcard-count'],
+        ['Smartcard List All', 'user-smartcard-list-all'],
+        ['Elevator Count', 'user-elevator-count'],
+        ['Elevator List All', 'user-elevator-list-all'],
+        ['Restricted Count', 'user-restricted-count'],
+        ['Restricted List All', 'user-restricted-list-all'],
+        ['Schedule Count', 'user-schedule-count'],
+        ['Schedule List All', 'user-schedule-list-all']
+      ],
+      'User Management': [
+        ['Identify Add', 'user-identify-add'],
+        ['Identify Delete', 'user-identify-delete'],
+        ['Identify Delete All', 'user-identify-delete-all'],
+        ['Identify List', 'user-identify-list'],
+        ['Identify Check', 'user-identify-check'],
+        ['Identify Template', 'user-identify-template'],
+        ['Identify Activate', 'user-identify-activate'],
+        ['Identify Deactivate', 'user-identify-deactivate'],
+        ['Identify Activate All', 'user-identify-activate-all'],
+        ['Restrict Enable', 'user-identify-restrict-enable'],
+        ['Time Activate', 'user-identify-time-activate'],
+        ['Time Deactivate', 'user-identify-time-deactivate'],
+        ['Time Deactivate All', 'user-identify-time-deactivate-all']
+      ]
+    };
+
+    function renderMenu(category) {
+      menuItems.innerHTML = '';
+      const items = menuCategories[category] || [];
+      for (const [label, action] of items) {
+        const button = document.createElement('button');
+        button.className = 'menu-item';
+        button.type = 'button';
+        button.textContent = label;
+        button.dataset.action = action;
+        button.addEventListener('click', async () => {
+          drawer.classList.remove('open');
+          await handleAction(action);
+        });
+        menuItems.appendChild(button);
+      }
+    }
+
+    Object.keys(menuCategories).forEach((category) => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      menuCategory.appendChild(option);
+    });
+    menuCategory.value = 'Quick Checks';
+    renderMenu(menuCategory.value);
+
+    menuCategory.addEventListener('change', () => {
+      renderMenu(menuCategory.value);
     });
 
     function setStatus(text, kind) {
