@@ -16,6 +16,32 @@ app.MapPost("/api/system-description-get", ExecuteSystemDescriptionGet);
 app.MapPost("/api/system-description-set", ExecuteSystemDescriptionSet);
 app.MapPost("/api/system-restart", ExecuteSystemRestart);
 app.MapPost("/api/system-firmware-update", ExecuteSystemFirmwareUpdate);
+app.MapPost("/api/system-desfire-set", ExecuteSystemDesfireSet);
+app.MapPost("/api/system-desfire-get", ExecuteSystemDesfireGet);
+app.MapPost("/api/system-desfire-secondary-set", ExecuteSystemDesfireSecondarySet);
+app.MapPost("/api/system-desfire-secondary-get", ExecuteSystemDesfireSecondaryGet);
+app.MapPost("/api/system-mifare-set", ExecuteSystemMifareSet);
+app.MapPost("/api/system-mifare-get", ExecuteSystemMifareGet);
+app.MapPost("/api/system-wiegand-set", ExecuteSystemWiegandSet);
+app.MapPost("/api/system-wiegand-get", ExecuteSystemWiegandGet);
+app.MapPost("/api/smartcard-detect", ExecuteSmartcardDetect);
+app.MapPost("/api/smartcard-desfire-erase", ExecuteSmartcardDesfireErase);
+app.MapPost("/api/smartcard-desfire-format", ExecuteSmartcardDesfireFormat);
+app.MapPost("/api/smartcard-desfire-write", ExecuteSmartcardDesfireWrite);
+app.MapPost("/api/smartcard-desfire-read", ExecuteSmartcardDesfireRead);
+app.MapPost("/api/smartcard-mifare-write", ExecuteSmartcardMifareWrite);
+app.MapPost("/api/smartcard-mifare-read", ExecuteSmartcardMifareRead);
+app.MapPost("/api/smartcard-mifare-badge-write", ExecuteSmartcardMifareBadgeWrite);
+app.MapPost("/api/smartcard-mifare-badge-read", ExecuteSmartcardMifareBadgeRead);
+app.MapPost("/api/smartcard-desfire-badge-create", ExecuteSmartcardDesfireBadgeCreate);
+app.MapPost("/api/smartcard-desfire-badge-write", ExecuteSmartcardDesfireBadgeWrite);
+app.MapPost("/api/smartcard-desfire-badge-read", ExecuteSmartcardDesfireBadgeRead);
+app.MapPost("/api/smartcard-desfire-face-create", ExecuteSmartcardDesfireFaceCreate);
+app.MapPost("/api/smartcard-desfire-face-write", ExecuteSmartcardDesfireFaceWrite);
+app.MapPost("/api/smartcard-desfire-face-read", ExecuteSmartcardDesfireFaceRead);
+app.MapPost("/api/smartcard-ask-read", ExecuteSmartcardAskRead);
+app.MapPost("/api/wiegand-detect", ExecuteWiegandDetect);
+app.MapPost("/api/card-uid-detect", ExecuteCardUidDetect);
 app.MapPost("/api/user-identify-count", ExecuteUserIdentifyCount);
 app.MapPost("/api/user-identify-list-all", ExecuteUserIdentifyListAll);
 app.MapPost("/api/user-identify-add", ExecuteUserIdentifyAdd);
@@ -113,6 +139,136 @@ static async Task<IResult> ExecuteSystemFirmwareUpdate(VisionA64Client client, H
     }
 
     return await ExecuteSoap(client, cancellationToken, c => c.SystemFirmwareUpdateAsync(fileData, md5, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemDesfireSet(VisionA64Client client, SystemDesfireSetRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemDesfireSetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemDesfireGet(VisionA64Client client, SmartcardTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemDesfireGetAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemDesfireSecondarySet(VisionA64Client client, SystemDesfireSecondarySetRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemDesfireSecondarySetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemDesfireSecondaryGet(VisionA64Client client, SmartcardTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemDesfireSecondaryGetAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemMifareSet(VisionA64Client client, SystemMifareSetRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemMifareSetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemMifareGet(VisionA64Client client, SmartcardTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemMifareGetAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemWiegandSet(VisionA64Client client, SystemWiegandSetRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemWiegandSetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemWiegandGet(VisionA64Client client, SmartcardTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemWiegandGetAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDetect(VisionA64Client client, SmartcardTimeoutTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDetectAsync(request.Timeout, request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireErase(VisionA64Client client, SmartcardTimeoutTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireEraseAsync(request.Timeout, request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireFormat(VisionA64Client client, SmartcardTimeoutTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireFormatAsync(request.Timeout, request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireWrite(VisionA64Client client, SmartcardDesfireWriteRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireWriteAsync(request.Timeout, request.Type, request.UserData, request.FaceDataBase64, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireRead(VisionA64Client client, SmartcardTimeoutTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireReadAsync(request.Timeout, request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardMifareWrite(VisionA64Client client, SmartcardMifareWriteRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardMifareWriteAsync(request.Timeout, request.UserData, request.FaceDataBase64, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardMifareRead(VisionA64Client client, SmartcardTimeoutRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardMifareReadAsync(request.Timeout, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardMifareBadgeWrite(VisionA64Client client, SmartcardBadgeWriteRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardMifareBadgeWriteAsync(request.Timeout, request.Badge, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardMifareBadgeRead(VisionA64Client client, SmartcardTimeoutRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardMifareBadgeReadAsync(request.Timeout, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireBadgeCreate(VisionA64Client client, SmartcardTimeoutRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireBadgeCreateAsync(request.Timeout, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireBadgeWrite(VisionA64Client client, SmartcardBadgeWriteRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireBadgeWriteAsync(request.Timeout, request.Badge, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireBadgeRead(VisionA64Client client, SmartcardTimeoutRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireBadgeReadAsync(request.Timeout, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireFaceCreate(VisionA64Client client, SmartcardTimeoutRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireFaceCreateAsync(request.Timeout, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireFaceWrite(VisionA64Client client, SmartcardFaceWriteRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireFaceWriteAsync(request.Timeout, request.FaceDataBase64, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardDesfireFaceRead(VisionA64Client client, SmartcardTimeoutRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardDesfireFaceReadAsync(request.Timeout, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSmartcardAskRead(VisionA64Client client, SmartcardTimeoutRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SmartcardAskReadAsync(request.Timeout, cancellationToken));
+}
+
+static async Task<IResult> ExecuteWiegandDetect(VisionA64Client client, SmartcardTimeoutTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.WiegandDetectAsync(request.Timeout, request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteCardUidDetect(VisionA64Client client, SmartcardTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.CardUidDetectAsync(request.Type, cancellationToken));
 }
 
 static async Task<IResult> ExecuteUserIdentifyCount(VisionA64Client client, CancellationToken cancellationToken)

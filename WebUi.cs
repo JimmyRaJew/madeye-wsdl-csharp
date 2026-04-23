@@ -476,6 +476,7 @@ internal static class WebUi
     const statusText = document.getElementById('statusText');
     let currentCategory = null;
     let currentSubcategory = 'Overview';
+    let activeSmartcardSection = 'Config';
 
     const menuCategories = {
       'Quick Checks': {
@@ -496,6 +497,42 @@ internal static class WebUi
           ['System Restart', 'system-restart'],
           ['Firmware Update', 'show-firmware-update']
         ]
+      },
+      'Smartcard': {
+        subcategories: {
+          Config: [
+            ['Desfire Set', 'smartcard-desfire-set'],
+            ['Desfire Get', 'smartcard-desfire-get'],
+            ['Desfire Secondary Set', 'smartcard-desfire-secondary-set'],
+            ['Desfire Secondary Get', 'smartcard-desfire-secondary-get'],
+            ['Mifare Set', 'smartcard-mifare-set'],
+            ['Mifare Get', 'smartcard-mifare-get'],
+            ['Wiegand Set', 'smartcard-wiegand-set'],
+            ['Wiegand Get', 'smartcard-wiegand-get']
+          ],
+          Detect: [
+            ['Smartcard Detect', 'smartcard-detect'],
+            ['Card UID Detect', 'card-uid-detect'],
+            ['Wiegand Detect', 'wiegand-detect']
+          ],
+          Operations: [
+            ['Desfire Erase', 'smartcard-desfire-erase'],
+            ['Desfire Format', 'smartcard-desfire-format'],
+            ['Desfire Write', 'smartcard-desfire-write'],
+            ['Desfire Read', 'smartcard-desfire-read'],
+            ['Mifare Write', 'smartcard-mifare-write'],
+            ['Mifare Read', 'smartcard-mifare-read'],
+            ['Mifare Badge Write', 'smartcard-mifare-badge-write'],
+            ['Mifare Badge Read', 'smartcard-mifare-badge-read'],
+            ['Desfire Badge Create', 'smartcard-desfire-badge-create'],
+            ['Desfire Badge Write', 'smartcard-desfire-badge-write'],
+            ['Desfire Badge Read', 'smartcard-desfire-badge-read'],
+            ['Desfire Face Create', 'smartcard-desfire-face-create'],
+            ['Desfire Face Write', 'smartcard-desfire-face-write'],
+            ['Desfire Face Read', 'smartcard-desfire-face-read'],
+            ['Ask Read', 'smartcard-ask-read']
+          ]
+        }
       },
       'Users': {
         subcategories: {
@@ -550,17 +587,25 @@ internal static class WebUi
 
     function renderMenu(category, subcategory = null) {
       const config = menuCategories[category] || {};
-      const items = category === 'Users'
-        ? (config.subcategories?.[subcategory || 'Overview'] || [])
+      const hasSubcategories = Boolean(config.subcategories);
+      const activeSubcategory = subcategory || (hasSubcategories ? Object.keys(config.subcategories)[0] : null);
+      const items = hasSubcategories
+        ? (config.subcategories?.[activeSubcategory] || [])
         : (config.items || []);
 
       currentCategory = category;
-      currentSubcategory = subcategory || 'Overview';
+      if (category === 'Smartcard') {
+        activeSmartcardSection = activeSubcategory || 'Config';
+      } else {
+        currentSubcategory = activeSubcategory || 'Overview';
+      }
       menuDropdown.classList.add('open');
-      menuDropdownHeading.textContent = category;
+      menuDropdownHeading.textContent = hasSubcategories && activeSubcategory
+        ? `${category} - ${activeSubcategory}`
+        : category;
       menuDropdownBody.innerHTML = '';
 
-      if (category === 'Users') {
+      if (hasSubcategories) {
         const tabRow = document.createElement('div');
         tabRow.className = 'menu-group-tabs';
         Object.keys(config.subcategories || {}).forEach((groupName) => {
@@ -572,7 +617,7 @@ internal static class WebUi
             event.stopPropagation();
             renderMenu(category, groupName);
           });
-          tab.classList.toggle('active', groupName === (subcategory || 'Overview'));
+          tab.classList.toggle('active', groupName === (category === 'Smartcard' ? activeSmartcardSection : currentSubcategory));
           tabRow.appendChild(tab);
         });
         menuDropdownBody.appendChild(tabRow);
@@ -600,6 +645,11 @@ internal static class WebUi
     function openMenu(category) {
       if (currentCategory === category && menuDropdown.classList.contains('open')) {
         menuDropdown.classList.remove('open');
+        return;
+      }
+
+      if (category === 'Smartcard') {
+        renderMenu(category, activeSmartcardSection || 'Config');
         return;
       }
 
@@ -722,13 +772,13 @@ internal static class WebUi
       };
     }
 
-    function showBadgeActionForm(title, endpoint, operation, submitLabel = 'Send') {
+    function showBadgeActionForm(title, endpoint, operation, submitLabel = 'Send', fieldKey = 'badgeID', placeholder = 'Badge ID') {
       formShell.className = 'form-shell active';
       formShell.innerHTML = `
         <div class="mini-card" style="margin:0; min-height:auto;">
           <div class="mini-label">${title}</div>
           <div class="form-grid" style="grid-template-columns: 1fr;">
-            <input id="badgeId" type="text" placeholder="Badge ID">
+            <input id="badgeId" type="text" placeholder="${placeholder}">
           </div>
           <div class="toolbar" style="margin-top:12px;">
             <button class="btn" id="cancelGenericBtn">Cancel</button>
@@ -740,11 +790,11 @@ internal static class WebUi
       document.getElementById('submitGenericBtn').onclick = async () => {
         const badgeId = document.getElementById('badgeId').value.trim();
         if (!badgeId) {
-          alert('Badge ID is required.');
+          alert(`${placeholder} is required.`);
           return;
         }
         clearForm();
-        await postJson(endpoint, { badgeID: badgeId }, operation);
+        await postJson(endpoint, { [fieldKey]: badgeId }, operation);
       };
     }
 
@@ -772,6 +822,334 @@ internal static class WebUi
         clearForm();
         await postJson(endpoint, { type: typeValue }, operation);
       };
+    }
+
+    function showTimeoutForm(title, endpoint, operation, defaultTimeout = 10) {
+      formShell.className = 'form-shell active';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">${title}</div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <input id="timeoutValue" type="text" value="${defaultTimeout}" placeholder="Timeout">
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelTimeoutBtn">Cancel</button>
+            <button class="btn primary" id="submitTimeoutBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelTimeoutBtn').onclick = clearForm;
+      document.getElementById('submitTimeoutBtn').onclick = async () => {
+        const timeoutValue = Number(document.getElementById('timeoutValue').value);
+        if (Number.isNaN(timeoutValue)) {
+          alert('Timeout must be a number.');
+          return;
+        }
+        clearForm();
+        await postJson(endpoint, { timeout: timeoutValue }, operation);
+      };
+    }
+
+    function showTimeoutTypeForm(title, endpoint, operation, defaultTimeout = 10, defaultType = 0) {
+      formShell.className = 'form-shell active';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">${title}</div>
+          <div class="form-grid">
+            <input id="timeoutValue" type="text" value="${defaultTimeout}" placeholder="Timeout">
+            <input id="typeValue" type="text" value="${defaultType}" placeholder="Type">
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelTimeoutTypeBtn">Cancel</button>
+            <button class="btn primary" id="submitTimeoutTypeBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelTimeoutTypeBtn').onclick = clearForm;
+      document.getElementById('submitTimeoutTypeBtn').onclick = async () => {
+        const timeoutValue = Number(document.getElementById('timeoutValue').value);
+        const typeValue = Number(document.getElementById('typeValue').value);
+        if (Number.isNaN(timeoutValue) || Number.isNaN(typeValue)) {
+          alert('Timeout and Type must be numbers.');
+          return;
+        }
+        clearForm();
+        await postJson(endpoint, { timeout: timeoutValue, type: typeValue }, operation);
+      };
+    }
+
+    function showSingleFieldForm(title, endpoint, operation, fieldKey, label, defaultValue = '', fieldType = 'text') {
+      formShell.className = 'form-shell active';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">${title}</div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <input id="singleField" type="${fieldType}" value="${defaultValue}" placeholder="${label}">
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelSingleBtn">Cancel</button>
+            <button class="btn primary" id="submitSingleBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelSingleBtn').onclick = clearForm;
+      document.getElementById('submitSingleBtn').onclick = async () => {
+        const value = document.getElementById('singleField').value;
+        if (!String(value).trim()) {
+          alert(`${label} is required.`);
+          return;
+        }
+        clearForm();
+        await postJson(endpoint, { [fieldKey]: fieldType === 'number' ? Number(value) : value }, operation);
+      };
+    }
+
+    function showSmartcardWriteForm(title, endpoint, operation, includeUserData, includeFaceData, includeType = false) {
+      formShell.className = 'form-shell active';
+      const typeField = includeType ? '<input id="typeValue" type="text" value="0" placeholder="Type">' : '';
+      const userField = includeUserData
+        ? '<input id="userData" type="text" placeholder="User Data">'
+        : '';
+      const faceField = includeFaceData
+        ? '<input id="faceFile" type="file" accept="*/*">'
+        : '';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">${title}</div>
+          <div class="form-grid">
+            <input id="timeoutValue" type="text" value="10" placeholder="Timeout">
+            ${typeField}
+          </div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            ${userField}
+            ${faceField}
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelSmartcardBtn">Cancel</button>
+            <button class="btn primary" id="submitSmartcardBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelSmartcardBtn').onclick = clearForm;
+      document.getElementById('submitSmartcardBtn').onclick = async () => {
+        const timeoutValue = Number(document.getElementById('timeoutValue').value);
+        const typeValue = includeType ? Number(document.getElementById('typeValue').value) : 0;
+        if (Number.isNaN(timeoutValue) || (includeType && Number.isNaN(typeValue))) {
+          alert('Timeout and Type must be numbers.');
+          return;
+        }
+
+        const payload = { timeout: timeoutValue };
+        if (includeType) {
+          payload.type = typeValue;
+        }
+        if (includeUserData) {
+          payload.userData = document.getElementById('userData').value;
+        }
+        if (includeFaceData) {
+          const fileInput = document.getElementById('faceFile');
+          if (!fileInput.files.length) {
+            alert('Choose a face data file first.');
+            return;
+          }
+          payload.faceDataBase64 = await readFileAsBase64(fileInput.files[0]);
+        }
+        clearForm();
+        await postJson(endpoint, payload, operation);
+      };
+    }
+
+    function showSmartcardConfigForm(title, endpoint, operation, fields) {
+      formShell.className = 'form-shell active';
+      const inputMarkup = fields.map((field) => {
+        if (field.type === 'file') {
+          return `<input id="${field.id}" type="file" accept="${field.accept || '*/*'}">`;
+        }
+        const value = field.value !== undefined ? field.value : '';
+        const inputType = field.type || 'text';
+        return `<input id="${field.id}" type="${inputType}" value="${value}" placeholder="${field.placeholder || field.label}">`;
+      }).join('');
+
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">${title}</div>
+          <div class="form-grid">
+            ${inputMarkup}
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelSmartcardConfigBtn">Cancel</button>
+            <button class="btn primary" id="submitSmartcardConfigBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelSmartcardConfigBtn').onclick = clearForm;
+      document.getElementById('submitSmartcardConfigBtn').onclick = async () => {
+        const payload = {};
+        for (const field of fields) {
+          const element = document.getElementById(field.id);
+          if (field.type === 'file') {
+            if (!element.files.length) {
+              alert(`${field.label} is required.`);
+              return;
+            }
+            payload[field.key] = await readFileAsBase64(element.files[0]);
+          } else if ((field.type || 'text') === 'number') {
+            const parsed = Number(element.value);
+            if (Number.isNaN(parsed)) {
+              alert(`${field.label} must be a number.`);
+              return;
+            }
+            payload[field.key] = parsed;
+          } else {
+            payload[field.key] = element.value;
+          }
+        }
+        clearForm();
+        await postJson(endpoint, payload, operation);
+      };
+    }
+
+    function showDesfireSetForm() {
+      showSmartcardConfigForm('Desfire Set', '/api/system-desfire-set', 'Smartcard Desfire Set', [
+        { id: 'keyType', key: 'keyType', label: 'Key Type', type: 'number', value: 2 },
+        { id: 'keySize', key: 'keySize', label: 'Key Size', type: 'number', value: 16 },
+        { id: 'keyMaster', key: 'keyMaster', label: 'Key Master', value: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF' },
+        { id: 'keyApplication', key: 'keyApplication', label: 'Key Application', value: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF' },
+        { id: 'keyReadWrite', key: 'keyReadWrite', label: 'Key Read Write', value: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF' },
+        { id: 'keyReadOnly', key: 'keyReadOnly', label: 'Key Read Only', value: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF' },
+        { id: 'applicationID', key: 'applicationID', label: 'Application ID', type: 'number', value: 144 },
+        { id: 'userFileType', key: 'userFileType', label: 'User File Type', type: 'number', value: 1 },
+        { id: 'userFileNumber', key: 'userFileNumber', label: 'User File Number', type: 'number', value: 1 },
+        { id: 'userFileSize', key: 'userFileSize', label: 'User File Size', type: 'number', value: 256 },
+        { id: 'faceFileType', key: 'faceFileType', label: 'Face File Type', type: 'number', value: 1 },
+        { id: 'faceFileNumber', key: 'faceFileNumber', label: 'Face File Number', type: 'number', value: 7 },
+        { id: 'faceFileSize', key: 'faceFileSize', label: 'Face File Size', type: 'number', value: 640 },
+        { id: 'keyMasterNumber', key: 'keyMasterNumber', label: 'Key Master Number', type: 'number', value: 0 },
+        { id: 'keyApplicationNumber', key: 'keyApplicationNumber', label: 'Key Application Number', type: 'number', value: 1 },
+        { id: 'keyReadWriteNumber', key: 'keyReadWriteNumber', label: 'Key Read Write Number', type: 'number', value: 2 },
+        { id: 'keyReadOnlyNumber', key: 'keyReadOnlyNumber', label: 'Key Read Only Number', type: 'number', value: 3 }
+      ]);
+    }
+
+    function showDesfireSecondarySetForm() {
+      showSmartcardConfigForm('Desfire Secondary Set', '/api/system-desfire-secondary-set', 'Smartcard Desfire Secondary Set', [
+        { id: 'keyReadWriteSecondary', key: 'keyReadWriteSecondary', label: 'Key Read Write Secondary', value: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF' },
+        { id: 'keyReadOnlySecondary', key: 'keyReadOnlySecondary', label: 'Key Read Only Secondary', value: 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF' },
+        { id: 'keyReadWriteNumberSecondary', key: 'keyReadWriteNumberSecondary', label: 'Key Read Write Number Secondary', type: 'number', value: 2 },
+        { id: 'keyReadOnlyNumberSecondary', key: 'keyReadOnlyNumberSecondary', label: 'Key Read Only Number Secondary', type: 'number', value: 3 },
+        { id: 'userSecondary', key: 'userSecondary', label: 'User Secondary', type: 'number', value: 0 },
+        { id: 'faceSecondary', key: 'faceSecondary', label: 'Face Secondary', type: 'number', value: 0 }
+      ]);
+    }
+
+    function showMifareSetForm() {
+      showSmartcardConfigForm('Mifare Set', '/api/system-mifare-set', 'Smartcard Mifare Set', [
+        { id: 'keyA', key: 'keyA', label: 'Key A', value: 'A0A1A2A3A4A5' },
+        { id: 'keyB', key: 'keyB', label: 'Key B', value: 'B0B1B2B3B4B5' },
+        { id: 'userStart', key: 'userStart', label: 'User Start', type: 'number', value: 4 },
+        { id: 'userSize', key: 'userSize', label: 'User Size', type: 'number', value: 64 },
+        { id: 'userKey', key: 'userKey', label: 'User Key', type: 'number', value: 0 },
+        { id: 'userFormat', key: 'userFormat', label: 'User Format', type: 'number', value: 0 },
+        { id: 'faceStart', key: 'faceStart', label: 'Face Start', type: 'number', value: 16 },
+        { id: 'faceSize', key: 'faceSize', label: 'Face Size', type: 'number', value: 512 },
+        { id: 'faceKey', key: 'faceKey', label: 'Face Key', type: 'number', value: 1 }
+      ]);
+    }
+
+    function showWiegandSetForm() {
+      showSmartcardConfigForm('Wiegand Set', '/api/system-wiegand-set', 'Smartcard Wiegand Set', [
+        { id: 'inputEnable', key: 'inputEnable', label: 'Input Enable', type: 'number', value: 1 },
+        { id: 'outputEnable', key: 'outputEnable', label: 'Output Enable', type: 'number', value: 1 },
+        { id: 'outputType', key: 'outputType', label: 'Output Type', type: 'number', value: 1 },
+        { id: 'outputPulseWidth', key: 'outputPulseWidth', label: 'Output Pulse Width', type: 'number', value: 50 },
+        { id: 'outputPulsePeriod', key: 'outputPulsePeriod', label: 'Output Pulse Period', type: 'number', value: 200 },
+        { id: 'outputFailEnable', key: 'outputFailEnable', label: 'Output Fail Enable', type: 'number', value: 0 },
+        { id: 'outputFailStartBit', key: 'outputFailStartBit', label: 'Output Fail Start Bit', type: 'number', value: 0 },
+        { id: 'outputFailLength', key: 'outputFailLength', label: 'Output Fail Length', type: 'number', value: 0 },
+        { id: 'outputFailCode', key: 'outputFailCode', label: 'Output Fail Code', type: 'number', value: 0 },
+        { id: 'serviceEndpoint', key: 'serviceEndpoint', label: 'Service Endpoint', value: '' },
+        { id: 'serviceTimeout', key: 'serviceTimeout', label: 'Service Timeout', type: 'number', value: 10 },
+        { id: 'webOrTcp', key: 'webOrTCP', label: 'Web Or TCP', type: 'number', value: 0 },
+        { id: 'tcpAddress', key: 'tcpAddress', label: 'TCP Address', value: '' },
+        { id: 'tcpPort', key: 'tcpPort', label: 'TCP Port', type: 'number', value: 0 },
+        { id: 'cardNumberEnable', key: 'cardNumberEnable', label: 'Card Number Enable', type: 'number', value: 0 },
+        { id: 'cardNumberStart', key: 'cardNumberStart', label: 'Card Number Start', type: 'number', value: 0 },
+        { id: 'cardNumberLength', key: 'cardNumberLength', label: 'Card Number Length', type: 'number', value: 0 },
+        { id: 'identifyFailCode', key: 'identifyFailCode', label: 'Identify Fail Code', value: '' },
+        { id: 'identifyFailLength', key: 'identifyFailLength', label: 'Identify Fail Length', type: 'number', value: 0 }
+      ]);
+    }
+
+    function showSmartcardDetectForm() {
+      showTimeoutTypeForm('Smartcard Detect', '/api/smartcard-detect', 'Smartcard Detect', 10, 0);
+    }
+
+    function showCardUidDetectForm() {
+      showTypeActionForm('Card UID Detect', '/api/card-uid-detect', 'Card UID Detect', 0);
+    }
+
+    function showWiegandDetectForm() {
+      showTimeoutTypeForm('Wiegand Detect', '/api/wiegand-detect', 'Wiegand Detect', 10, 0);
+    }
+
+    function showDesfireEraseForm() {
+      showTimeoutTypeForm('Desfire Erase', '/api/smartcard-desfire-erase', 'Smartcard Desfire Erase', 10, 2);
+    }
+
+    function showDesfireFormatForm() {
+      showTimeoutTypeForm('Desfire Format', '/api/smartcard-desfire-format', 'Smartcard Desfire Format', 10, 2);
+    }
+
+    function showDesfireWriteForm() {
+      showSmartcardWriteForm('Desfire Write', '/api/smartcard-desfire-write', 'Smartcard Desfire Write', true, true, true);
+    }
+
+    function showDesfireReadForm() {
+      showTimeoutTypeForm('Desfire Read', '/api/smartcard-desfire-read', 'Smartcard Desfire Read', 10, 2);
+    }
+
+    function showMifareWriteForm() {
+      showSmartcardWriteForm('Mifare Write', '/api/smartcard-mifare-write', 'Smartcard Mifare Write', true, true, false);
+    }
+
+    function showMifareReadForm() {
+      showTimeoutForm('Mifare Read', '/api/smartcard-mifare-read', 'Smartcard Mifare Read', 10);
+    }
+
+    function showMifareBadgeWriteForm() {
+      showBadgeActionForm('Mifare Badge Write', '/api/smartcard-mifare-badge-write', 'Smartcard Mifare Badge Write', 'Send', 'badge', 'Badge');
+    }
+
+    function showMifareBadgeReadForm() {
+      showTimeoutForm('Mifare Badge Read', '/api/smartcard-mifare-badge-read', 'Smartcard Mifare Badge Read', 10);
+    }
+
+    function showDesfireBadgeCreateForm() {
+      showTimeoutForm('Desfire Badge Create', '/api/smartcard-desfire-badge-create', 'Smartcard Desfire Badge Create', 10);
+    }
+
+    function showDesfireBadgeWriteForm() {
+      showBadgeActionForm('Desfire Badge Write', '/api/smartcard-desfire-badge-write', 'Smartcard Desfire Badge Write', 'Send', 'badge', 'Badge');
+    }
+
+    function showDesfireBadgeReadForm() {
+      showTimeoutForm('Desfire Badge Read', '/api/smartcard-desfire-badge-read', 'Smartcard Desfire Badge Read', 10);
+    }
+
+    function showDesfireFaceCreateForm() {
+      showTimeoutForm('Desfire Face Create', '/api/smartcard-desfire-face-create', 'Smartcard Desfire Face Create', 10);
+    }
+
+    function showDesfireFaceWriteForm() {
+      showSmartcardWriteForm('Desfire Face Write', '/api/smartcard-desfire-face-write', 'Smartcard Desfire Face Write', false, true, false);
+    }
+
+    function showDesfireFaceReadForm() {
+      showTimeoutForm('Desfire Face Read', '/api/smartcard-desfire-face-read', 'Smartcard Desfire Face Read', 10);
+    }
+
+    function showAskReadForm() {
+      showTimeoutForm('Ask Read', '/api/smartcard-ask-read', 'Smartcard Ask Read', 10);
     }
 
     function showRestrictEnableForm() {
@@ -933,6 +1311,84 @@ internal static class WebUi
           break;
         case 'show-firmware-update':
           showFirmwareForm();
+          break;
+        case 'smartcard-desfire-set':
+          showSmartcardDesfireSetForm();
+          break;
+        case 'smartcard-desfire-get':
+          showTypeActionForm('Desfire Get', '/api/system-desfire-get', 'Smartcard Desfire Get', 0);
+          break;
+        case 'smartcard-desfire-secondary-set':
+          showSmartcardDesfireSecondarySetForm();
+          break;
+        case 'smartcard-desfire-secondary-get':
+          showTypeActionForm('Desfire Secondary Get', '/api/system-desfire-secondary-get', 'Smartcard Desfire Secondary Get', 0);
+          break;
+        case 'smartcard-mifare-set':
+          showSmartcardMifareSetForm();
+          break;
+        case 'smartcard-mifare-get':
+          showTypeActionForm('Mifare Get', '/api/system-mifare-get', 'Smartcard Mifare Get', 0);
+          break;
+        case 'smartcard-wiegand-set':
+          showSmartcardWiegandSetForm();
+          break;
+        case 'smartcard-wiegand-get':
+          showTypeActionForm('Wiegand Get', '/api/system-wiegand-get', 'Smartcard Wiegand Get', 0);
+          break;
+        case 'smartcard-detect':
+          showTimeoutTypeForm('Smartcard Detect', '/api/smartcard-detect', 'Smartcard Detect');
+          break;
+        case 'card-uid-detect':
+          showTypeActionForm('Card UID Detect', '/api/card-uid-detect', 'Card UID Detect', 0);
+          break;
+        case 'wiegand-detect':
+          showTimeoutTypeForm('Wiegand Detect', '/api/wiegand-detect', 'Wiegand Detect');
+          break;
+        case 'smartcard-desfire-erase':
+          showTimeoutTypeForm('Desfire Erase', '/api/smartcard-desfire-erase', 'Smartcard Desfire Erase');
+          break;
+        case 'smartcard-desfire-format':
+          showTimeoutTypeForm('Desfire Format', '/api/smartcard-desfire-format', 'Smartcard Desfire Format');
+          break;
+        case 'smartcard-desfire-write':
+          showSmartcardWriteForm('Desfire Write', '/api/smartcard-desfire-write', 'Smartcard Desfire Write', true, true, true);
+          break;
+        case 'smartcard-desfire-read':
+          showTimeoutTypeForm('Desfire Read', '/api/smartcard-desfire-read', 'Smartcard Desfire Read');
+          break;
+        case 'smartcard-mifare-write':
+          showSmartcardWriteForm('Mifare Write', '/api/smartcard-mifare-write', 'Smartcard Mifare Write', false, true, true);
+          break;
+        case 'smartcard-mifare-read':
+          showTimeoutForm('Mifare Read', '/api/smartcard-mifare-read', 'Smartcard Mifare Read');
+          break;
+        case 'smartcard-mifare-badge-write':
+          showBadgeActionForm('Mifare Badge Write', '/api/smartcard-mifare-badge-write', 'Smartcard Mifare Badge Write');
+          break;
+        case 'smartcard-mifare-badge-read':
+          showTimeoutForm('Mifare Badge Read', '/api/smartcard-mifare-badge-read', 'Smartcard Mifare Badge Read');
+          break;
+        case 'smartcard-desfire-badge-create':
+          showTimeoutForm('Desfire Badge Create', '/api/smartcard-desfire-badge-create', 'Smartcard Desfire Badge Create');
+          break;
+        case 'smartcard-desfire-badge-write':
+          showBadgeActionForm('Desfire Badge Write', '/api/smartcard-desfire-badge-write', 'Smartcard Desfire Badge Write');
+          break;
+        case 'smartcard-desfire-badge-read':
+          showTimeoutForm('Desfire Badge Read', '/api/smartcard-desfire-badge-read', 'Smartcard Desfire Badge Read');
+          break;
+        case 'smartcard-desfire-face-create':
+          showTimeoutForm('Desfire Face Create', '/api/smartcard-desfire-face-create', 'Smartcard Desfire Face Create');
+          break;
+        case 'smartcard-desfire-face-write':
+          showSmartcardWriteForm('Desfire Face Write', '/api/smartcard-desfire-face-write', 'Smartcard Desfire Face Write', false, false, true);
+          break;
+        case 'smartcard-desfire-face-read':
+          showTimeoutForm('Desfire Face Read', '/api/smartcard-desfire-face-read', 'Smartcard Desfire Face Read');
+          break;
+        case 'smartcard-ask-read':
+          showTimeoutForm('Ask Read', '/api/smartcard-ask-read', 'Smartcard Ask Read');
           break;
         case 'user-identify-count':
           await postEmpty('/api/user-identify-count', 'User Identify Count');

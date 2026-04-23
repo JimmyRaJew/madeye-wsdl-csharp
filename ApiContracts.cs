@@ -14,3 +14,69 @@ public sealed record UserBadgeRequest(string? BadgeID);
 public sealed record UserTypeRequest(int Type);
 public sealed record UserIdentifyRestrictEnableRequest(int Status);
 public sealed record UserIdentifyTimeActivateRequest(string? BadgeID, string? StartTime, string? EndTime);
+public sealed record SystemDesfireSetRequest(
+    int KeyType,
+    int KeySize,
+    string? KeyMaster,
+    string? KeyApplication,
+    string? KeyReadWrite,
+    string? KeyReadOnly,
+    int ApplicationID,
+    int UserFileType,
+    int UserFileNumber,
+    int UserFileSize,
+    int FaceFileType,
+    int FaceFileNumber,
+    int FaceFileSize,
+    int KeyMasterNumber,
+    int KeyApplicationNumber,
+    int KeyReadWriteNumber,
+    int KeyReadOnlyNumber);
+
+public sealed record SystemDesfireSecondarySetRequest(
+    string? KeyReadWriteSecondary,
+    string? KeyReadOnlySecondary,
+    int KeyReadWriteNumberSecondary,
+    int KeyReadOnlyNumberSecondary,
+    int UserSecondary,
+    int FaceSecondary);
+
+public sealed record SystemMifareSetRequest(
+    string? KeyA,
+    string? KeyB,
+    int UserStart,
+    int UserSize,
+    int UserKey,
+    int UserFormat,
+    int FaceStart,
+    int FaceSize,
+    int FaceKey);
+
+public sealed record SystemWiegandSetRequest(
+    int InputEnable,
+    int OutputEnable,
+    int OutputType,
+    int OutputPulseWidth,
+    int OutputPulsePeriod,
+    int OutputFailEnable,
+    int OutputFailStartBit,
+    int OutputFailLength,
+    long OutputFailCode,
+    string? ServiceEndpoint,
+    int ServiceTimeout,
+    int WebOrTCP,
+    string? TCPAddress,
+    int TCPPort,
+    int CardNumberEnable,
+    int CardNumberStart,
+    int CardNumberLength,
+    string? IdentifyFailCode,
+    int IdentifyFailLength);
+
+public sealed record SmartcardTimeoutTypeRequest(int Timeout, int Type);
+public sealed record SmartcardTimeoutRequest(int Timeout);
+public sealed record SmartcardDesfireWriteRequest(int Timeout, int Type, string? UserData, string? FaceDataBase64);
+public sealed record SmartcardMifareWriteRequest(int Timeout, string? UserData, string? FaceDataBase64);
+public sealed record SmartcardBadgeWriteRequest(int Timeout, string? Badge);
+public sealed record SmartcardFaceWriteRequest(int Timeout, string? FaceDataBase64);
+public sealed record SmartcardTypeRequest(int Type);
