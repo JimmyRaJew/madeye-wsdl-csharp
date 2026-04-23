@@ -1,22 +1,31 @@
-# Madeye WSDL C# Console
+# Madeye WSDL C# Web Console
 
-This is the C# counterpart to the Java VisionA64 console.
+This repo contains the C# web client for the VisionA64 camera.
 
-It is meant to be a clean, maintainable desktop SOAP client for the camera, with the same long-term goal as the Java app:
+It is the browser-based version of the same SOAP integration we built in Java:
 
-- easy to extend one WSDL operation at a time
-- clear separation between SOAP logic and UI
-- a handoff-friendly README for the next developer
+- a clean white UI
+- a top-left burger menu
+- grouped camera actions
+- structured SOAP responses rendered in the browser
 
 ## Current State
 
-The app currently uses Avalonia and a white desktop layout with:
+The app is now an ASP.NET Core web app served locally at:
 
-- a top-left burger menu
-- a compact response dashboard
-- a clean card-based results view
+```text
+http://localhost:5080
+```
 
-Current implemented actions:
+Open that URL in a browser after running the app.
+
+The current menu groups are:
+
+- `Quick Checks`
+- `System Settings`
+- `Maintenance`
+
+The current implemented actions are:
 
 - `System Check`
 - `System Check Extra`
@@ -26,14 +35,6 @@ Current implemented actions:
 - `SystemRestart`
 - `SystemFirmwareUpdate`
 
-The menu is split into:
-
-- `Quick Checks`
-- `System Settings`
-- `Maintenance`
-
-The rest of the larger WSDL surface area will be added later in the same pattern as the Java version.
-
 ## Camera Endpoint
 
 The app currently targets:
@@ -42,11 +43,9 @@ The app currently targets:
 http://192.168.18.244:8080/
 ```
 
-That endpoint is hard-coded in:
+That endpoint is hard-coded in [VisionA64Client.cs](VisionA64Client.cs).
 
-- [VisionA64Client.cs](VisionA64Client.cs)
-
-If the camera IP changes, update the endpoint there first.
+If the camera IP changes, update it there first.
 
 ## Requirements
 
@@ -62,30 +61,38 @@ dotnet build
 dotnet run
 ```
 
-The project is cross-platform because the UI uses Avalonia. It should run on macOS and Windows as long as the .NET 8 desktop dependencies are available.
-
-## Project Layout
+Then open:
 
 ```text
-Program.cs           # App startup
-App.cs               # Avalonia application bootstrap
-MainWindow.cs        # UI, menu, and response rendering
-VisionA64Client.cs   # SOAP client and XML parsing
-SoapResult.cs        # Parsed response model
-MadeyeWsdlCSharp.csproj
-visionA64.wsdl       # Captured WSDL for reference
-README.md            # This handoff guide
+http://localhost:5080
 ```
 
 ## How The App Is Structured
 
-Keep these responsibilities separate:
+Keep the responsibilities split this way:
 
-- `MainWindow` owns the UI, menu, dialogs, and status display.
-- `VisionA64Client` owns SOAP request construction, HTTP calls, and XML parsing.
-- `SoapResult` carries the parsed camera response back to the UI.
+- `Program.cs` hosts the web server and API routes.
+- `WebUi.cs` contains the browser HTML, CSS, and client-side JavaScript.
+- `VisionA64Client.cs` owns SOAP request construction, HTTP calls, and XML parsing.
+- `SoapResult.cs` carries parsed camera responses back to the browser UI.
 
-This split is important when the app grows. Add new WSDL actions in the client first, then wire them into the menu.
+This split matters. Add new WSDL operations in the SOAP client first, then wire them into the browser menu and forms.
+
+## API Routes
+
+Current routes:
+
+- `GET /` returns the browser UI
+- `GET /api/health` returns a simple status object
+- `POST /api/system-check`
+- `POST /api/system-check-extra`
+- `POST /api/system-device-id-get`
+- `POST /api/system-description-get`
+- `POST /api/system-description-set`
+- `POST /api/system-restart`
+- `POST /api/system-firmware-update`
+
+The browser UI calls those routes with `fetch`.
 
 ## SOAP Notes
 
@@ -96,8 +103,10 @@ The client currently sends:
 - `Content-Type: text/xml; charset=utf-8`
 - `SOAPAction` headers matching the WSDL action name
 
-The existing read-style actions send `Type=1`.
+Read-style actions send `Type=1`.
+
 `SystemDescriptionSet` sends the three label fields.
+
 `SystemFirmwareUpdate` sends the ZIP payload as base64 plus the provided MD5 string.
 
 ## Extending The App
@@ -105,21 +114,30 @@ The existing read-style actions send `Type=1`.
 When you add another WSDL function:
 
 1. Add a method to `VisionA64Client`.
-2. Parse the response into `SoapResult` or another small model if needed.
-3. Add the action to the menu in `MainWindow`.
+2. Add an API route in `Program.cs`.
+3. Add a menu item or form in `WebUi.cs`.
 4. Update this README with the request and response details.
 
-Keep menu labels short and use WSDL exact names in the client layer.
+Keep the browser labels short and the SOAP method names exact.
+
+## Browser UI Notes
+
+The browser UI currently includes:
+
+- a burger menu in the top-left
+- grouped action buttons
+- a dynamic form area for the actions that need input
+- result code, error message, detail rows, report text, and raw XML
 
 ## Troubleshooting
 
-### `dotnet run` starts but no window appears
+### The browser page does not load
 
-Check that the app is still running in the terminal and that the window is not behind another desktop or minimized.
+Check that the app is still running and that you are visiting:
 
-### Build fails on macOS or Windows
-
-Make sure the .NET 8 SDK is installed and restore can reach NuGet.
+```text
+http://localhost:5080
+```
 
 ### Camera request fails
 
@@ -130,13 +148,17 @@ Check:
 - the endpoint in `VisionA64Client` matches the device
 - the SOAP action name matches the WSDL exactly
 
-### Response fields are missing
+### API returns an error
 
-That usually means the device returned a fault, an unexpected payload, or a response shape that needs a parser update.
+That usually means:
+
+- the request shape does not match the WSDL
+- the camera returned a SOAP fault
+- the device is offline or rebooting
 
 ## Notes For Future Developers
 
-- This repo is the C# reference implementation.
-- The UI is intentionally minimal while we are adding the first WSDL actions.
-- Keep SOAP integration logic out of the UI layer.
-- Update this README as soon as you add a new operation so the handoff stays useful.
+- This repo is the C# web reference implementation.
+- Keep SOAP integration logic out of the browser UI.
+- Add one WSDL operation at a time and update the README as you go.
+- The browser UI is intentionally simple so it can grow into a fuller operator console later.
