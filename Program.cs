@@ -18,6 +18,19 @@ app.MapPost("/api/system-restart", ExecuteSystemRestart);
 app.MapPost("/api/system-firmware-update", ExecuteSystemFirmwareUpdate);
 app.MapPost("/api/user-identify-count", ExecuteUserIdentifyCount);
 app.MapPost("/api/user-identify-list-all", ExecuteUserIdentifyListAll);
+app.MapPost("/api/user-identify-add", ExecuteUserIdentifyAdd);
+app.MapPost("/api/user-identify-delete", ExecuteUserIdentifyDelete);
+app.MapPost("/api/user-identify-delete-all", ExecuteUserIdentifyDeleteAll);
+app.MapPost("/api/user-identify-list", ExecuteUserIdentifyList);
+app.MapPost("/api/user-identify-check", ExecuteUserIdentifyCheck);
+app.MapPost("/api/user-identify-template", ExecuteUserIdentifyTemplate);
+app.MapPost("/api/user-identify-restrict-enable", ExecuteUserIdentifyRestrictEnable);
+app.MapPost("/api/user-identify-activate", ExecuteUserIdentifyActivate);
+app.MapPost("/api/user-identify-deactivate", ExecuteUserIdentifyDeactivate);
+app.MapPost("/api/user-identify-activate-all", ExecuteUserIdentifyActivateAll);
+app.MapPost("/api/user-identify-time-activate", ExecuteUserIdentifyTimeActivate);
+app.MapPost("/api/user-identify-time-deactivate", ExecuteUserIdentifyTimeDeactivate);
+app.MapPost("/api/user-identify-time-deactivate-all", ExecuteUserIdentifyTimeDeactivateAll);
 app.MapPost("/api/user-smartcard-count", ExecuteUserSmartcardCount);
 app.MapPost("/api/user-smartcard-list-all", ExecuteUserSmartcardListAll);
 app.MapPost("/api/user-elevator-count", ExecuteUserElevatorCount);
@@ -110,6 +123,135 @@ static async Task<IResult> ExecuteUserIdentifyCount(VisionA64Client client, Canc
 static async Task<IResult> ExecuteUserIdentifyListAll(VisionA64Client client, CancellationToken cancellationToken)
 {
     return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyListAllAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyAdd(VisionA64Client client, UserIdentifyAddRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    if (string.IsNullOrWhiteSpace(request.FaceDataBase64))
+    {
+        return Results.BadRequest(new { error = "Face data is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyAddAsync(
+        request.BadgeID.Trim(),
+        request.FaceDataBase64.Trim(),
+        request.RelayActive,
+        request.RelayStrike,
+        request.WiegandActive,
+        request.WiegandData ?? string.Empty,
+        request.WiegandLength,
+        cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyDelete(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyDeleteAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyDeleteAll(VisionA64Client client, UserTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyDeleteAllAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyList(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyListAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyCheck(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyCheckAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyTemplate(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyTemplateAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyRestrictEnable(VisionA64Client client, UserIdentifyRestrictEnableRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyRestrictEnableAsync(request.Status, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyActivate(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyActivateAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyDeactivate(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyDeactivateAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyActivateAll(VisionA64Client client, UserTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyActivateAllAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyTimeActivate(VisionA64Client client, UserIdentifyTimeActivateRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID) ||
+        string.IsNullOrWhiteSpace(request.StartTime) ||
+        string.IsNullOrWhiteSpace(request.EndTime))
+    {
+        return Results.BadRequest(new { error = "BadgeID, StartTime, and EndTime are required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyTimeActivateAsync(
+        request.BadgeID.Trim(),
+        request.StartTime.Trim(),
+        request.EndTime.Trim(),
+        cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyTimeDeactivate(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyTimeDeactivateAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserIdentifyTimeDeactivateAll(VisionA64Client client, UserTypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyTimeDeactivateAllAsync(request.Type, cancellationToken));
 }
 
 static async Task<IResult> ExecuteUserSmartcardCount(VisionA64Client client, CancellationToken cancellationToken)

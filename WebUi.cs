@@ -280,6 +280,8 @@ internal static class WebUi
       top: 70px;
       width: 300px;
       max-width: calc(100vw - 36px);
+      max-height: calc(100vh - 96px);
+      overflow-y: auto;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -366,6 +368,22 @@ internal static class WebUi
         <button class="menu-item" data-action="user-restricted-list-all">Restricted List All</button>
         <button class="menu-item" data-action="user-schedule-count">Schedule Count</button>
         <button class="menu-item" data-action="user-schedule-list-all">Schedule List All</button>
+      </div>
+      <div class="menu-section">
+        <div class="menu-heading">User Management</div>
+        <button class="menu-item" data-action="user-identify-add">Identify Add</button>
+        <button class="menu-item" data-action="user-identify-delete">Identify Delete</button>
+        <button class="menu-item" data-action="user-identify-delete-all">Identify Delete All</button>
+        <button class="menu-item" data-action="user-identify-list">Identify List</button>
+        <button class="menu-item" data-action="user-identify-check">Identify Check</button>
+        <button class="menu-item" data-action="user-identify-template">Identify Template</button>
+        <button class="menu-item" data-action="user-identify-activate">Identify Activate</button>
+        <button class="menu-item" data-action="user-identify-deactivate">Identify Deactivate</button>
+        <button class="menu-item" data-action="user-identify-activate-all">Identify Activate All</button>
+        <button class="menu-item" data-action="user-identify-restrict-enable">Restrict Enable</button>
+        <button class="menu-item" data-action="user-identify-time-activate">Time Activate</button>
+        <button class="menu-item" data-action="user-identify-time-deactivate">Time Deactivate</button>
+        <button class="menu-item" data-action="user-identify-time-deactivate-all">Time Deactivate All</button>
       </div>
     </div>
 
@@ -562,6 +580,192 @@ internal static class WebUi
       };
     }
 
+    function showBadgeActionForm(title, endpoint, operation, submitLabel = 'Send') {
+      formShell.className = 'form-shell active';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">${title}</div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <input id="badgeId" type="text" placeholder="Badge ID">
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelGenericBtn">Cancel</button>
+            <button class="btn primary" id="submitGenericBtn">${submitLabel}</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelGenericBtn').onclick = clearForm;
+      document.getElementById('submitGenericBtn').onclick = async () => {
+        const badgeId = document.getElementById('badgeId').value.trim();
+        if (!badgeId) {
+          alert('Badge ID is required.');
+          return;
+        }
+        clearForm();
+        await postJson(endpoint, { badgeID: badgeId }, operation);
+      };
+    }
+
+    function showTypeActionForm(title, endpoint, operation, defaultType = 1) {
+      formShell.className = 'form-shell active';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">${title}</div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <input id="typeValue" type="text" value="${defaultType}" placeholder="Type">
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelTypeBtn">Cancel</button>
+            <button class="btn primary" id="submitTypeBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelTypeBtn').onclick = clearForm;
+      document.getElementById('submitTypeBtn').onclick = async () => {
+        const typeValue = Number(document.getElementById('typeValue').value);
+        if (Number.isNaN(typeValue)) {
+          alert('Type must be a number.');
+          return;
+        }
+        clearForm();
+        await postJson(endpoint, { type: typeValue }, operation);
+      };
+    }
+
+    function showRestrictEnableForm() {
+      formShell.className = 'form-shell active';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">Restrict Enable</div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <input id="statusValue" type="text" value="1" placeholder="Status">
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelStatusBtn">Cancel</button>
+            <button class="btn primary" id="submitStatusBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelStatusBtn').onclick = clearForm;
+      document.getElementById('submitStatusBtn').onclick = async () => {
+        const statusValue = Number(document.getElementById('statusValue').value);
+        if (Number.isNaN(statusValue)) {
+          alert('Status must be a number.');
+          return;
+        }
+        clearForm();
+        await postJson('/api/user-identify-restrict-enable', { status: statusValue }, 'User Identify Restrict Enable');
+      };
+    }
+
+    function showTimeActivateForm() {
+      formShell.className = 'form-shell active';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">Time Activate</div>
+          <div class="form-grid">
+            <input id="badgeId" type="text" placeholder="Badge ID">
+            <input id="startTime" type="text" placeholder="Start Time">
+            <input id="endTime" type="text" placeholder="End Time">
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelTimeBtn">Cancel</button>
+            <button class="btn primary" id="submitTimeBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelTimeBtn').onclick = clearForm;
+      document.getElementById('submitTimeBtn').onclick = async () => {
+        const badgeId = document.getElementById('badgeId').value.trim();
+        const startTime = document.getElementById('startTime').value.trim();
+        const endTime = document.getElementById('endTime').value.trim();
+        if (!badgeId || !startTime || !endTime) {
+          alert('Badge ID, Start Time, and End Time are required.');
+          return;
+        }
+        clearForm();
+        await postJson('/api/user-identify-time-activate', {
+          badgeID: badgeId,
+          startTime,
+          endTime
+        }, 'User Identify Time Activate');
+      };
+    }
+
+    function showIdentifyAddForm() {
+      formShell.className = 'form-shell active';
+      formShell.innerHTML = `
+        <div class="mini-card" style="margin:0; min-height:auto;">
+          <div class="mini-label">Identify Add</div>
+          <div class="form-grid">
+            <input id="badgeId" type="text" placeholder="Badge ID">
+            <input id="faceFile" type="file" accept="*/*">
+            <input id="relayActive" type="text" value="1" placeholder="Relay Active">
+            <input id="relayStrike" type="text" value="0" placeholder="Relay Strike">
+            <input id="wiegandActive" type="text" value="0" placeholder="Wiegand Active">
+            <input id="wiegandLength" type="text" value="0" placeholder="Wiegand Length">
+          </div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <input id="wiegandData" type="text" placeholder="Wiegand Data">
+          </div>
+          <div class="toolbar" style="margin-top:12px;">
+            <button class="btn" id="cancelIdentifyAddBtn">Cancel</button>
+            <button class="btn primary" id="submitIdentifyAddBtn">Send</button>
+          </div>
+        </div>`;
+
+      document.getElementById('cancelIdentifyAddBtn').onclick = clearForm;
+      document.getElementById('submitIdentifyAddBtn').onclick = async () => {
+        const badgeId = document.getElementById('badgeId').value.trim();
+        const fileInput = document.getElementById('faceFile');
+        const relayActive = Number(document.getElementById('relayActive').value);
+        const relayStrike = Number(document.getElementById('relayStrike').value);
+        const wiegandActive = Number(document.getElementById('wiegandActive').value);
+        const wiegandLength = Number(document.getElementById('wiegandLength').value);
+        const wiegandData = document.getElementById('wiegandData').value;
+
+        if (!badgeId) {
+          alert('Badge ID is required.');
+          return;
+        }
+
+        if (Number.isNaN(relayActive) || Number.isNaN(relayStrike) || Number.isNaN(wiegandActive) || Number.isNaN(wiegandLength)) {
+          alert('Relay, Wiegand, and length values must be numeric.');
+          return;
+        }
+
+        if (!fileInput.files.length) {
+          alert('Choose a face data file first.');
+          return;
+        }
+
+        const faceDataBase64 = await readFileAsBase64(fileInput.files[0]);
+        clearForm();
+        await postJson('/api/user-identify-add', {
+          badgeID: badgeId,
+          faceDataBase64,
+          relayActive,
+          relayStrike,
+          wiegandActive,
+          wiegandData,
+          wiegandLength
+        }, 'User Identify Add');
+      };
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = String(reader.result || '');
+          const base64 = text.includes(',') ? text.split(',')[1] : text;
+          resolve(base64 || '');
+        };
+        reader.onerror = () => reject(reader.error || new Error('Unable to read file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
     async function handleAction(action) {
       clearForm();
       switch (action) {
@@ -593,6 +797,45 @@ internal static class WebUi
           break;
         case 'user-identify-list-all':
           await postEmpty('/api/user-identify-list-all', 'User Identify List All');
+          break;
+        case 'user-identify-add':
+          showIdentifyAddForm();
+          break;
+        case 'user-identify-delete':
+          showBadgeActionForm('Identify Delete', '/api/user-identify-delete', 'User Identify Delete');
+          break;
+        case 'user-identify-delete-all':
+          showTypeActionForm('Identify Delete All', '/api/user-identify-delete-all', 'User Identify Delete All');
+          break;
+        case 'user-identify-list':
+          showBadgeActionForm('Identify List', '/api/user-identify-list', 'User Identify List');
+          break;
+        case 'user-identify-check':
+          showBadgeActionForm('Identify Check', '/api/user-identify-check', 'User Identify Check');
+          break;
+        case 'user-identify-template':
+          showBadgeActionForm('Identify Template', '/api/user-identify-template', 'User Identify Template');
+          break;
+        case 'user-identify-activate':
+          showBadgeActionForm('Identify Activate', '/api/user-identify-activate', 'User Identify Activate');
+          break;
+        case 'user-identify-deactivate':
+          showBadgeActionForm('Identify Deactivate', '/api/user-identify-deactivate', 'User Identify Deactivate');
+          break;
+        case 'user-identify-activate-all':
+          showTypeActionForm('Identify Activate All', '/api/user-identify-activate-all', 'User Identify Activate All');
+          break;
+        case 'user-identify-restrict-enable':
+          showRestrictEnableForm();
+          break;
+        case 'user-identify-time-activate':
+          showTimeActivateForm();
+          break;
+        case 'user-identify-time-deactivate':
+          showBadgeActionForm('Identify Time Deactivate', '/api/user-identify-time-deactivate', 'User Identify Time Deactivate');
+          break;
+        case 'user-identify-time-deactivate-all':
+          showTypeActionForm('Identify Time Deactivate All', '/api/user-identify-time-deactivate-all', 'User Identify Time Deactivate All');
           break;
         case 'user-smartcard-count':
           await postEmpty('/api/user-smartcard-count', 'User Smartcard Count');

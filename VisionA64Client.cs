@@ -212,6 +212,156 @@ internal sealed class VisionA64Client
             cancellationToken);
     }
 
+    public Task<SoapResult> UserIdentifyAddAsync(
+        string badgeId,
+        string faceDataBase64,
+        int relayActive,
+        int relayStrike,
+        int wiegandActive,
+        string wiegandData,
+        int wiegandLength,
+        CancellationToken cancellationToken = default)
+    {
+        return InvokeSingleValueAsync(
+            "UserIdentifyAdd",
+            "UserIdentifyAddRequest",
+            new Dictionary<string, string>
+            {
+                ["BadgeID"] = badgeId,
+                ["FaceData"] = faceDataBase64,
+                ["RelayActive"] = relayActive.ToString(),
+                ["RelayStrike"] = relayStrike.ToString(),
+                ["WiegandActive"] = wiegandActive.ToString(),
+                ["WiegandData"] = wiegandData,
+                ["WiegandLength"] = wiegandLength.ToString()
+            },
+            "CardNumber",
+            "CardNumber",
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyDeleteAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyDelete",
+            "UserIdentifyDeleteRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyDeleteAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyDeleteAll",
+            "UserIdentifyDeleteAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyListAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserIdentifyList",
+            "UserIdentifyListRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            "WiegandData",
+            new[] { "RelayActive", "RelayStrike", "WiegandActive", "WiegandLength" },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyCheckAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeSingleValueAsync(
+            "UserIdentifyCheck",
+            "UserIdentifyCheckRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            "IsPresent",
+            "IsPresent",
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyTemplateAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeBinaryValueAsync(
+            "UserIdentifyTemplate",
+            "UserIdentifyTemplateRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            "FaceData",
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyRestrictEnableAsync(int status, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyRestrictEnable",
+            "UserIdentifyRestrictEnableRequest",
+            new Dictionary<string, string> { ["Status"] = status.ToString() },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyActivateAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyActivate",
+            "UserIdentifyActivateRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyDeactivateAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyDeactivate",
+            "UserIdentifyDeactivateRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyActivateAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyActivateAll",
+            "UserIdentifyActivateAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyTimeActivateAsync(
+        string badgeId,
+        string startTime,
+        string endTime,
+        CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyTimeActivate",
+            "UserIdentifyTimeActivateRequest",
+            new Dictionary<string, string>
+            {
+                ["BadgeID"] = badgeId,
+                ["StartTime"] = startTime,
+                ["EndTime"] = endTime
+            },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyTimeDeactivateAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyTimeDeactivate",
+            "UserIdentifyTimeDeactivateRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyTimeDeactivateAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserIdentifyTimeDeactivateAll",
+            "UserIdentifyTimeDeactivateAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            cancellationToken);
+    }
+
     private async Task<SoapResult> InvokeAsync(
         string action,
         string requestElement,
@@ -331,6 +481,70 @@ internal sealed class VisionA64Client
             detailsField,
             value,
             SplitLines(value),
+            xml);
+    }
+
+    private async Task<SoapResult> InvokeBinaryValueAsync(
+        string action,
+        string requestElement,
+        IReadOnlyDictionary<string, string> requestFields,
+        string valueField,
+        CancellationToken cancellationToken)
+    {
+        var envelope = BuildEnvelope(requestElement, requestFields);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+        {
+            Content = new StringContent(envelope, Encoding.UTF8, "text/xml")
+        };
+
+        request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/soap+xml"));
+
+        using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        string xml = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        XDocument document = XDocument.Parse(xml);
+
+        int result = ParseInt(FirstText(document, "Result"), "Result");
+        string errorMessage = FirstText(document, "ErrorMessage");
+        string value = FirstText(document, valueField);
+
+        string preview = string.Empty;
+        int byteCount = 0;
+        try
+        {
+            byte[] bytes = Convert.FromBase64String(value);
+            byteCount = bytes.Length;
+            preview = bytes.Length == 0 ? string.Empty : Convert.ToBase64String(bytes.Take(12).ToArray());
+        }
+        catch
+        {
+            preview = value.Length > 24 ? value[..24] : value;
+        }
+
+        var details = new Dictionary<string, string>
+        {
+            [$"{valueField}Length"] = byteCount > 0 ? byteCount.ToString() : value.Length.ToString(),
+            [$"{valueField}Preview"] = string.IsNullOrWhiteSpace(preview) ? "(empty)" : preview
+        };
+
+        var lines = new List<string>();
+        lines.Add(byteCount > 0 ? $"Binary data length: {byteCount} bytes" : "Binary data received.");
+        if (!string.IsNullOrWhiteSpace(preview))
+        {
+            lines.Add($"Preview: {preview}");
+        }
+
+        return new SoapResult(
+            action,
+            result,
+            errorMessage,
+            details,
+            valueField,
+            lines[0],
+            lines,
             xml);
     }
 

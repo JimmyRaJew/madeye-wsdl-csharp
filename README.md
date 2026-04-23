@@ -45,6 +45,19 @@ The current implemented actions are:
 - `UserRestrictedListAll`
 - `UserScheduleCount`
 - `UserScheduleListAll`
+- `UserIdentifyAdd`
+- `UserIdentifyDelete`
+- `UserIdentifyDeleteAll`
+- `UserIdentifyList`
+- `UserIdentifyCheck`
+- `UserIdentifyTemplate`
+- `UserIdentifyActivate`
+- `UserIdentifyDeactivate`
+- `UserIdentifyActivateAll`
+- `UserIdentifyRestrictEnable`
+- `UserIdentifyTimeActivate`
+- `UserIdentifyTimeDeactivate`
+- `UserIdentifyTimeDeactivateAll`
 
 ## Camera Endpoint
 
@@ -104,6 +117,19 @@ Current routes:
 - `POST /api/system-firmware-update`
 - `POST /api/user-identify-count`
 - `POST /api/user-identify-list-all`
+- `POST /api/user-identify-add`
+- `POST /api/user-identify-delete`
+- `POST /api/user-identify-delete-all`
+- `POST /api/user-identify-list`
+- `POST /api/user-identify-check`
+- `POST /api/user-identify-template`
+- `POST /api/user-identify-restrict-enable`
+- `POST /api/user-identify-activate`
+- `POST /api/user-identify-deactivate`
+- `POST /api/user-identify-activate-all`
+- `POST /api/user-identify-time-activate`
+- `POST /api/user-identify-time-deactivate`
+- `POST /api/user-identify-time-deactivate-all`
 - `POST /api/user-smartcard-count`
 - `POST /api/user-smartcard-list-all`
 - `POST /api/user-elevator-count`
@@ -130,11 +156,15 @@ Read-style actions send `Type=1`.
 
 `SystemFirmwareUpdate` sends the ZIP payload as base64 plus the provided MD5 string.
 
-The current Users section is a read-only overview slice:
+The current Users section now includes both overview and identify-management actions:
 
 - count operations use `Type=1`
 - list-all operations also use `Type=1`
-- the more complex add/update/delete user calls are intentionally deferred until this slice is stable
+- identify add accepts a badge ID plus base64 face data and relay/wiegand settings
+- identify delete, check, activate, deactivate, and template operations use `BadgeID`
+- identify delete-all, activate-all, and time-deactivate-all use `Type`
+- identify time-activate uses `BadgeID`, `StartTime`, and `EndTime`
+- identify restrict-enable uses `Status`
 
 ## Extending The App
 
