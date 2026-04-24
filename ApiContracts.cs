@@ -41,6 +41,14 @@ public sealed record SystemDesfireSecondarySetRequest(
     int UserSecondary,
     int FaceSecondary);
 
+public sealed record UserIdentifyAddMultiRequest(int UserIdentifyCount, string? UserIdentifyDataBase64, int UserIdentifyOverwrite);
+public sealed record UserDatabaseSetRequest(string? SqlDataBase64, string? SqlChecksum);
+public sealed record UserImageRequest(string? BadgeID, string? ImageDataBase64);
+public sealed record UserElevatorAddRequest(string? BadgeID, string? ModuleAddress, string? ModuleType, string? RelayList);
+public sealed record UserElevatorAddMultiRequest(string? Badges, string? ModuleAddresses, string? ModuleTypes, string? RelayLists, int Count, int Overwrite);
+public sealed record UserBadgeWiegandAddRequest(string? BadgeID, string? WiegandData, int WiegandLength);
+public sealed record UserBadgeWiegandDeleteRequest(int Type, string? BadgeID, string? WiegandData);
+
 public sealed record SystemMifareSetRequest(
     string? KeyA,
     string? KeyB,

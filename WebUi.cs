@@ -495,7 +495,8 @@ internal static class WebUi
       'Maintenance': {
         items: [
           ['System Restart', 'system-restart'],
-          ['Firmware Update', 'show-firmware-update']
+          ['Firmware Update', 'show-firmware-update'],
+          ['Database Reset', 'system-database-reset']
         ]
       },
       'Logs': {
@@ -582,6 +583,7 @@ internal static class WebUi
           ],
           Management: [
             ['Identify Add', 'user-identify-add'],
+            ['Identify Add Multi', 'user-identify-add-multi'],
             ['Identify Delete', 'user-identify-delete'],
             ['Identify Delete All', 'user-identify-delete-all'],
             ['Identify List', 'user-identify-list'],
@@ -594,6 +596,20 @@ internal static class WebUi
             ['Time Activate', 'user-identify-time-activate'],
             ['Time Deactivate', 'user-identify-time-deactivate'],
             ['Time Deactivate All', 'user-identify-time-deactivate-all']
+          ],
+          Admin: [
+            ['User Database Get', 'user-database-get'],
+            ['User Database Set', 'user-database-set'],
+            ['User Image', 'user-image'],
+            ['Badge Wiegand Add', 'user-badge-wiegand-add'],
+            ['Badge Wiegand Delete', 'user-badge-wiegand-delete'],
+            ['Badge Wiegand Delete All', 'user-badge-wiegand-delete-all'],
+            ['Badge Wiegand List All', 'user-badge-wiegand-list-all'],
+            ['Elevator Add', 'user-elevator-add'],
+            ['Elevator Add Multi', 'user-elevator-add-multi'],
+            ['Elevator Check', 'user-elevator-check'],
+            ['Elevator Delete', 'user-elevator-delete'],
+            ['Elevator Delete All', 'user-elevator-delete-all']
           ]
         }
       }
@@ -802,6 +818,76 @@ internal static class WebUi
         clearForm();
         await postForm('/api/system-firmware-update', formData, 'System Firmware Update');
       };
+    }
+
+    function showSystemDatabaseResetForm() {
+      showTypeActionForm('System Database Reset', '/api/system-database-reset', 'System Database Reset', 0);
+    }
+
+    function showUserIdentifyAddMultiForm() {
+      showSmartcardConfigForm('Identify Add Multi', '/api/user-identify-add-multi', 'User Identify Add Multi', [
+        { id: 'userIdentifyCount', key: 'userIdentifyCount', label: 'Count', type: 'number', value: 100 },
+        { id: 'userIdentifyDataBase64', key: 'userIdentifyDataBase64', label: 'User Data', type: 'file', accept: '*/*' },
+        { id: 'userIdentifyOverwrite', key: 'userIdentifyOverwrite', label: 'Overwrite', type: 'number', value: 0 }
+      ]);
+    }
+
+    function showUserDatabaseGetForm() {
+      showTypeActionForm('User Database Get', '/api/user-database-get', 'User Database Get', 0);
+    }
+
+    function showUserDatabaseSetForm() {
+      showSmartcardConfigForm('User Database Set', '/api/user-database-set', 'User Database Set', [
+        { id: 'sqlDataBase64', key: 'sqlDataBase64', label: 'SQL Data', type: 'file', accept: '*/*' },
+        { id: 'sqlChecksum', key: 'sqlChecksum', label: 'SQL Checksum', value: '' }
+      ]);
+    }
+
+    function showUserImageForm() {
+      showSmartcardConfigForm('User Image', '/api/user-image', 'User Image', [
+        { id: 'badgeID', key: 'badgeID', label: 'Badge ID', value: '' },
+        { id: 'imageDataBase64', key: 'imageDataBase64', label: 'Image Data', type: 'file', accept: '*/*' }
+      ]);
+    }
+
+    function showBadgeWiegandAddForm() {
+      showSmartcardConfigForm('Badge Wiegand Add', '/api/user-badge-wiegand-add', 'Badge Wiegand Add', [
+        { id: 'badgeID', key: 'badgeID', label: 'Badge ID', value: '' },
+        { id: 'wiegandData', key: 'wiegandData', label: 'Wiegand Data', value: '' },
+        { id: 'wiegandLength', key: 'wiegandLength', label: 'Wiegand Length', type: 'number', value: 16 }
+      ]);
+    }
+
+    function showBadgeWiegandDeleteForm() {
+      showSmartcardConfigForm('Badge Wiegand Delete', '/api/user-badge-wiegand-delete', 'Badge Wiegand Delete', [
+        { id: 'type', key: 'type', label: 'Type', type: 'number', value: 0 },
+        { id: 'badgeID', key: 'badgeID', label: 'Badge ID', value: '' },
+        { id: 'wiegandData', key: 'wiegandData', label: 'Wiegand Data', value: '' }
+      ]);
+    }
+
+    function showBadgeWiegandListAllForm() {
+      showTypeActionForm('Badge Wiegand List All', '/api/user-badge-wiegand-list-all', 'Badge Wiegand List All', 0);
+    }
+
+    function showUserElevatorAddForm() {
+      showSmartcardConfigForm('Elevator Add', '/api/user-elevator-add', 'User Elevator Add', [
+        { id: 'badgeID', key: 'badgeID', label: 'Badge ID', value: '' },
+        { id: 'moduleAddress', key: 'moduleAddress', label: 'Module Address', value: '' },
+        { id: 'moduleType', key: 'moduleType', label: 'Module Type', value: '' },
+        { id: 'relayList', key: 'relayList', label: 'Relay List', value: '' }
+      ]);
+    }
+
+    function showUserElevatorAddMultiForm() {
+      showSmartcardConfigForm('Elevator Add Multi', '/api/user-elevator-add-multi', 'User Elevator Add Multi', [
+        { id: 'count', key: 'count', label: 'Count', type: 'number', value: 1 },
+        { id: 'badges', key: 'badges', label: 'Badges', value: '' },
+        { id: 'moduleAddresses', key: 'moduleAddresses', label: 'Module Addresses', value: '' },
+        { id: 'moduleTypes', key: 'moduleTypes', label: 'Module Types', value: '' },
+        { id: 'relayLists', key: 'relayLists', label: 'Relay Lists', value: '' },
+        { id: 'overwrite', key: 'overwrite', label: 'Overwrite', type: 'number', value: 0 }
+      ]);
     }
 
     function showBadgeActionForm(title, endpoint, operation, submitLabel = 'Send', fieldKey = 'badgeID', placeholder = 'Badge ID') {
@@ -1423,6 +1509,9 @@ internal static class WebUi
         case 'show-firmware-update':
           showFirmwareForm();
           break;
+        case 'system-database-reset':
+          showSystemDatabaseResetForm();
+          break;
         case 'smartcard-desfire-set':
           showSmartcardDesfireSetForm();
           break;
@@ -1570,6 +1659,9 @@ internal static class WebUi
         case 'user-identify-add':
           showIdentifyAddForm();
           break;
+        case 'user-identify-add-multi':
+          showUserIdentifyAddMultiForm();
+          break;
         case 'user-identify-delete':
           showBadgeActionForm('Identify Delete', '/api/user-identify-delete', 'User Identify Delete');
           break;
@@ -1606,11 +1698,47 @@ internal static class WebUi
         case 'user-identify-time-deactivate-all':
           showTypeActionForm('Identify Time Deactivate All', '/api/user-identify-time-deactivate-all', 'User Identify Time Deactivate All');
           break;
+        case 'user-database-get':
+          showUserDatabaseGetForm();
+          break;
+        case 'user-database-set':
+          showUserDatabaseSetForm();
+          break;
+        case 'user-image':
+          showUserImageForm();
+          break;
+        case 'user-badge-wiegand-add':
+          showBadgeWiegandAddForm();
+          break;
+        case 'user-badge-wiegand-delete':
+          showBadgeWiegandDeleteForm();
+          break;
+        case 'user-badge-wiegand-delete-all':
+          showTypeActionForm('Badge Wiegand Delete All', '/api/user-badge-wiegand-delete-all', 'Badge Wiegand Delete All', 0);
+          break;
+        case 'user-badge-wiegand-list-all':
+          showBadgeWiegandListAllForm();
+          break;
         case 'user-smartcard-count':
           await postEmpty('/api/user-smartcard-count', 'User Smartcard Count');
           break;
         case 'user-smartcard-list-all':
           await postEmpty('/api/user-smartcard-list-all', 'User Smartcard List All');
+          break;
+        case 'user-elevator-add':
+          showUserElevatorAddForm();
+          break;
+        case 'user-elevator-add-multi':
+          showUserElevatorAddMultiForm();
+          break;
+        case 'user-elevator-check':
+          showBadgeActionForm('Elevator Check', '/api/user-elevator-check', 'User Elevator Check');
+          break;
+        case 'user-elevator-delete':
+          showBadgeActionForm('Elevator Delete', '/api/user-elevator-delete', 'User Elevator Delete');
+          break;
+        case 'user-elevator-delete-all':
+          showTypeActionForm('Elevator Delete All', '/api/user-elevator-delete-all', 'User Elevator Delete All', 0);
           break;
         case 'user-elevator-count':
           await postEmpty('/api/user-elevator-count', 'User Elevator Count');

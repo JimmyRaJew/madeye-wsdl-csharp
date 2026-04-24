@@ -103,6 +103,15 @@ internal sealed class VisionA64Client
             cancellationToken);
     }
 
+    public Task<SoapResult> SystemDatabaseResetAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "SystemDatabaseReset",
+            "SystemDatabaseResetRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            cancellationToken);
+    }
+
     public Task<SoapResult> SystemDesfireSetAsync(SystemDesfireSetRequest request, CancellationToken cancellationToken = default)
     {
         return InvokeResultOnlyAsync(
@@ -1138,6 +1147,69 @@ internal sealed class VisionA64Client
             cancellationToken);
     }
 
+    public Task<SoapResult> UserElevatorAddAsync(string badgeId, string moduleAddress, string moduleType, string relayList, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserElevatorAdd",
+            "UserElevatorAddRequest",
+            new Dictionary<string, string>
+            {
+                ["BadgeID"] = badgeId,
+                ["ModuleAddress"] = moduleAddress,
+                ["ModuleType"] = moduleType,
+                ["RelayList"] = relayList
+            },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserElevatorAddMultiAsync(int count, string badges, string moduleAddresses, string moduleTypes, string relayLists, int overwrite, CancellationToken cancellationToken = default)
+    {
+        return InvokeSingleValueAsync(
+            "UserElevatorAddMulti",
+            "UserElevatorAddMultiRequest",
+            new Dictionary<string, string>
+            {
+                ["Count"] = count.ToString(),
+                ["Badges"] = badges,
+                ["ModuleAddresses"] = moduleAddresses,
+                ["ModuleTypes"] = moduleTypes,
+                ["RelayLists"] = relayLists,
+                ["Overwrite"] = overwrite.ToString()
+            },
+            "Total",
+            "Total",
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserElevatorCheckAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeSingleValueAsync(
+            "UserElevatorCheck",
+            "UserElevatorCheckRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            "IsPresent",
+            "IsPresent",
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserElevatorDeleteAsync(string badgeId, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserElevatorDelete",
+            "UserElevatorDeleteRequest",
+            new Dictionary<string, string> { ["BadgeID"] = badgeId },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserElevatorDeleteAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserElevatorDeleteAll",
+            "UserElevatorDeleteAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            cancellationToken);
+    }
+
     public Task<SoapResult> UserRestrictedCountAsync(int type, CancellationToken cancellationToken = default)
     {
         return InvokeAsync(
@@ -1329,6 +1401,146 @@ internal sealed class VisionA64Client
             "UserIdentifyTimeDeactivateAll",
             "UserIdentifyTimeDeactivateAllRequest",
             new Dictionary<string, string> { ["Type"] = type.ToString() },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserIdentifyAddMultiAsync(int count, byte[] data, int overwrite, CancellationToken cancellationToken = default)
+    {
+        return InvokeSingleValueAsync(
+            "UserIdentifyAddMulti",
+            "UserIdentifyAddMultiRequest",
+            new Dictionary<string, string>
+            {
+                ["UserIdentifyCount"] = count.ToString(),
+                ["UserIdentifyData"] = Convert.ToBase64String(data),
+                ["UserIdentifyOverwrite"] = overwrite.ToString()
+            },
+            "TotalWrite",
+            "TotalWrite",
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserBadgeWiegandAddAsync(string badgeId, string wiegandData, int wiegandLength, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserBadgeWiegandAdd",
+            "UserBadgeWiegandAddRequest",
+            new Dictionary<string, string>
+            {
+                ["BadgeID"] = badgeId,
+                ["WiegandData"] = wiegandData,
+                ["WiegandLength"] = wiegandLength.ToString()
+            },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserBadgeWiegandDeleteAsync(int type, string badgeId, string wiegandData, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserBadgeWiegandDelete",
+            "UserBadgeWiegandDeleteRequest",
+            new Dictionary<string, string>
+            {
+                ["Type"] = type.ToString(),
+                ["BadgeID"] = badgeId,
+                ["WiegandData"] = wiegandData
+            },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserBadgeWiegandDeleteAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserBadgeWiegandDeleteAll",
+            "UserBadgeWiegandDeleteAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserBadgeWiegandListAllAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeAsync(
+            "UserBadgeWiegandListAll",
+            "UserBadgeWiegandListAllRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            "List",
+            new[] { "Number" },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserDatabaseGetAsync(int type, CancellationToken cancellationToken = default)
+    {
+        return InvokeCustomAsync(
+            "UserDatabaseGet",
+            "UserDatabaseGetRequest",
+            new Dictionary<string, string> { ["Type"] = type.ToString() },
+            (document, xml) =>
+            {
+                int result = ParseInt(FirstText(document, "Result"), "Result");
+                string errorMessage = FirstText(document, "ErrorMessage");
+                string sqlData = FirstText(document, "SQLData");
+                string sqlChecksum = FirstText(document, "SQLChecksum");
+
+                byte[] bytes = Array.Empty<byte>();
+                string preview = string.Empty;
+                try
+                {
+                    bytes = Convert.FromBase64String(sqlData);
+                    preview = bytes.Length == 0 ? string.Empty : Convert.ToBase64String(bytes.Take(12).ToArray());
+                }
+                catch
+                {
+                    preview = sqlData.Length > 24 ? sqlData[..24] : sqlData;
+                }
+
+                var details = new Dictionary<string, string>
+                {
+                    ["SQLChecksum"] = sqlChecksum,
+                    ["SQLDataLength"] = bytes.Length > 0 ? bytes.Length.ToString() : sqlData.Length.ToString(),
+                    ["SQLDataPreview"] = string.IsNullOrWhiteSpace(preview) ? "(empty)" : preview
+                };
+
+                var lines = new List<string>
+                {
+                    bytes.Length > 0 ? $"Binary data length: {bytes.Length} bytes" : "Binary data received."
+                };
+                if (!string.IsNullOrWhiteSpace(preview))
+                {
+                    lines.Add($"Preview: {preview}");
+                }
+                if (!string.IsNullOrWhiteSpace(sqlChecksum))
+                {
+                    lines.Add($"Checksum: {sqlChecksum}");
+                }
+
+                return new SoapResult("UserDatabaseGet", result, errorMessage, details, "SQL Data", lines[0], lines, xml);
+            },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserDatabaseSetAsync(byte[] sqlData, string sqlChecksum, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserDatabaseSet",
+            "UserDatabaseSetRequest",
+            new Dictionary<string, string>
+            {
+                ["SQLData"] = Convert.ToBase64String(sqlData),
+                ["SQLChecksum"] = sqlChecksum
+            },
+            cancellationToken);
+    }
+
+    public Task<SoapResult> UserImageAsync(string badgeId, byte[] imageData, CancellationToken cancellationToken = default)
+    {
+        return InvokeResultOnlyAsync(
+            "UserImage",
+            "UserImageRequest",
+            new Dictionary<string, string>
+            {
+                ["BadgeID"] = badgeId,
+                ["ImageData"] = Convert.ToBase64String(imageData)
+            },
             cancellationToken);
     }
 

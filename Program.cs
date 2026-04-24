@@ -16,6 +16,7 @@ app.MapPost("/api/system-description-get", ExecuteSystemDescriptionGet);
 app.MapPost("/api/system-description-set", ExecuteSystemDescriptionSet);
 app.MapPost("/api/system-restart", ExecuteSystemRestart);
 app.MapPost("/api/system-firmware-update", ExecuteSystemFirmwareUpdate);
+app.MapPost("/api/system-database-reset", ExecuteSystemDatabaseReset);
 app.MapPost("/api/system-desfire-set", ExecuteSystemDesfireSet);
 app.MapPost("/api/system-desfire-get", ExecuteSystemDesfireGet);
 app.MapPost("/api/system-desfire-secondary-set", ExecuteSystemDesfireSecondarySet);
@@ -77,10 +78,23 @@ app.MapPost("/api/user-identify-activate-all", ExecuteUserIdentifyActivateAll);
 app.MapPost("/api/user-identify-time-activate", ExecuteUserIdentifyTimeActivate);
 app.MapPost("/api/user-identify-time-deactivate", ExecuteUserIdentifyTimeDeactivate);
 app.MapPost("/api/user-identify-time-deactivate-all", ExecuteUserIdentifyTimeDeactivateAll);
+app.MapPost("/api/user-identify-add-multi", ExecuteUserIdentifyAddMulti);
+app.MapPost("/api/user-badge-wiegand-add", ExecuteUserBadgeWiegandAdd);
+app.MapPost("/api/user-badge-wiegand-delete", ExecuteUserBadgeWiegandDelete);
+app.MapPost("/api/user-badge-wiegand-delete-all", ExecuteUserBadgeWiegandDeleteAll);
+app.MapPost("/api/user-badge-wiegand-list-all", ExecuteUserBadgeWiegandListAll);
+app.MapPost("/api/user-database-get", ExecuteUserDatabaseGet);
+app.MapPost("/api/user-database-set", ExecuteUserDatabaseSet);
+app.MapPost("/api/user-image", ExecuteUserImage);
 app.MapPost("/api/user-smartcard-count", ExecuteUserSmartcardCount);
 app.MapPost("/api/user-smartcard-list-all", ExecuteUserSmartcardListAll);
 app.MapPost("/api/user-elevator-count", ExecuteUserElevatorCount);
 app.MapPost("/api/user-elevator-list-all", ExecuteUserElevatorListAll);
+app.MapPost("/api/user-elevator-add", ExecuteUserElevatorAdd);
+app.MapPost("/api/user-elevator-add-multi", ExecuteUserElevatorAddMulti);
+app.MapPost("/api/user-elevator-check", ExecuteUserElevatorCheck);
+app.MapPost("/api/user-elevator-delete", ExecuteUserElevatorDelete);
+app.MapPost("/api/user-elevator-delete-all", ExecuteUserElevatorDeleteAll);
 app.MapPost("/api/user-restricted-count", ExecuteUserRestrictedCount);
 app.MapPost("/api/user-restricted-list-all", ExecuteUserRestrictedListAll);
 app.MapPost("/api/user-schedule-count", ExecuteUserScheduleCount);
@@ -159,6 +173,11 @@ static async Task<IResult> ExecuteSystemFirmwareUpdate(VisionA64Client client, H
     }
 
     return await ExecuteSoap(client, cancellationToken, c => c.SystemFirmwareUpdateAsync(fileData, md5, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemDatabaseReset(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemDatabaseResetAsync(request.Type, cancellationToken));
 }
 
 static async Task<IResult> ExecuteSystemDesfireSet(VisionA64Client client, SystemDesfireSetRequest request, CancellationToken cancellationToken)
@@ -530,6 +549,114 @@ static async Task<IResult> ExecuteUserIdentifyTimeDeactivateAll(VisionA64Client 
     return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyTimeDeactivateAllAsync(request.Type, cancellationToken));
 }
 
+static async Task<IResult> ExecuteUserIdentifyAddMulti(VisionA64Client client, UserIdentifyAddMultiRequest request, CancellationToken cancellationToken)
+{
+    if (request.UserIdentifyCount <= 0)
+    {
+        return Results.BadRequest(new { error = "UserIdentifyCount must be greater than zero." });
+    }
+
+    if (string.IsNullOrWhiteSpace(request.UserIdentifyDataBase64))
+    {
+        return Results.BadRequest(new { error = "UserIdentifyDataBase64 is required." });
+    }
+
+    byte[] data;
+    try
+    {
+        data = Convert.FromBase64String(request.UserIdentifyDataBase64.Trim());
+    }
+    catch
+    {
+        return Results.BadRequest(new { error = "UserIdentifyDataBase64 must be valid base64." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserIdentifyAddMultiAsync(request.UserIdentifyCount, data, request.UserIdentifyOverwrite, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserBadgeWiegandAdd(VisionA64Client client, UserBadgeWiegandAddRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID) || string.IsNullOrWhiteSpace(request.WiegandData))
+    {
+        return Results.BadRequest(new { error = "BadgeID and WiegandData are required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserBadgeWiegandAddAsync(
+        request.BadgeID.Trim(),
+        request.WiegandData.Trim(),
+        request.WiegandLength,
+        cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserBadgeWiegandDelete(VisionA64Client client, UserBadgeWiegandDeleteRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID) || string.IsNullOrWhiteSpace(request.WiegandData))
+    {
+        return Results.BadRequest(new { error = "BadgeID and WiegandData are required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserBadgeWiegandDeleteAsync(
+        request.Type,
+        request.BadgeID.Trim(),
+        request.WiegandData.Trim(),
+        cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserBadgeWiegandDeleteAll(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserBadgeWiegandDeleteAllAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserBadgeWiegandListAll(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserBadgeWiegandListAllAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserDatabaseGet(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserDatabaseGetAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserDatabaseSet(VisionA64Client client, UserDatabaseSetRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.SqlDataBase64) || string.IsNullOrWhiteSpace(request.SqlChecksum))
+    {
+        return Results.BadRequest(new { error = "SqlDataBase64 and SqlChecksum are required." });
+    }
+
+    byte[] sqlData;
+    try
+    {
+        sqlData = Convert.FromBase64String(request.SqlDataBase64.Trim());
+    }
+    catch
+    {
+        return Results.BadRequest(new { error = "SqlDataBase64 must be valid base64." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserDatabaseSetAsync(sqlData, request.SqlChecksum.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserImage(VisionA64Client client, UserImageRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID) || string.IsNullOrWhiteSpace(request.ImageDataBase64))
+    {
+        return Results.BadRequest(new { error = "BadgeID and ImageDataBase64 are required." });
+    }
+
+    byte[] imageData;
+    try
+    {
+        imageData = Convert.FromBase64String(request.ImageDataBase64.Trim());
+    }
+    catch
+    {
+        return Results.BadRequest(new { error = "ImageDataBase64 must be valid base64." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserImageAsync(request.BadgeID.Trim(), imageData, cancellationToken));
+}
+
 static async Task<IResult> ExecuteUserSmartcardCount(VisionA64Client client, CancellationToken cancellationToken)
 {
     return await ExecuteSoap(client, cancellationToken, c => c.UserSmartcardCountAsync(1, cancellationToken));
@@ -548,6 +675,69 @@ static async Task<IResult> ExecuteUserElevatorCount(VisionA64Client client, Canc
 static async Task<IResult> ExecuteUserElevatorListAll(VisionA64Client client, CancellationToken cancellationToken)
 {
     return await ExecuteSoap(client, cancellationToken, c => c.UserElevatorListAllAsync(1, cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserElevatorAdd(VisionA64Client client, UserElevatorAddRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID) ||
+        string.IsNullOrWhiteSpace(request.ModuleAddress) ||
+        string.IsNullOrWhiteSpace(request.ModuleType) ||
+        string.IsNullOrWhiteSpace(request.RelayList))
+    {
+        return Results.BadRequest(new { error = "BadgeID, ModuleAddress, ModuleType, and RelayList are required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserElevatorAddAsync(
+        request.BadgeID.Trim(),
+        request.ModuleAddress.Trim(),
+        request.ModuleType.Trim(),
+        request.RelayList.Trim(),
+        cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserElevatorAddMulti(VisionA64Client client, UserElevatorAddMultiRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.Badges) ||
+        string.IsNullOrWhiteSpace(request.ModuleAddresses) ||
+        string.IsNullOrWhiteSpace(request.ModuleTypes) ||
+        string.IsNullOrWhiteSpace(request.RelayLists))
+    {
+        return Results.BadRequest(new { error = "Badges, ModuleAddresses, ModuleTypes, and RelayLists are required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserElevatorAddMultiAsync(
+        request.Count,
+        request.Badges.Trim(),
+        request.ModuleAddresses.Trim(),
+        request.ModuleTypes.Trim(),
+        request.RelayLists.Trim(),
+        request.Overwrite,
+        cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserElevatorCheck(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserElevatorCheckAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserElevatorDelete(VisionA64Client client, UserBadgeRequest request, CancellationToken cancellationToken)
+{
+    if (string.IsNullOrWhiteSpace(request.BadgeID))
+    {
+        return Results.BadRequest(new { error = "BadgeID is required." });
+    }
+
+    return await ExecuteSoap(client, cancellationToken, c => c.UserElevatorDeleteAsync(request.BadgeID.Trim(), cancellationToken));
+}
+
+static async Task<IResult> ExecuteUserElevatorDeleteAll(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.UserElevatorDeleteAllAsync(request.Type, cancellationToken));
 }
 
 static async Task<IResult> ExecuteUserRestrictedCount(VisionA64Client client, CancellationToken cancellationToken)
