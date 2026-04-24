@@ -498,6 +498,38 @@ internal static class WebUi
           ['Firmware Update', 'show-firmware-update']
         ]
       },
+      'Logs': {
+        items: [
+          ['System Log Set', 'system-log-set'],
+          ['System Log Get', 'system-log-get'],
+          ['Delete Event Logs', 'log-delete-event'],
+          ['Get Event Logs', 'log-get-event'],
+          ['Delete App Logs', 'log-delete-app'],
+          ['Get App Logs', 'log-get-app'],
+          ['Delete Sys Logs', 'log-delete-sys'],
+          ['Get Sys Logs', 'log-get-sys']
+        ]
+      },
+      'Face': {
+        items: [
+          ['System Face Set', 'system-face-set'],
+          ['System Face Get', 'system-face-get'],
+          ['Face Extract', 'face-extract'],
+          ['Face Verify', 'face-verify'],
+          ['Face Identify', 'face-identify'],
+          ['Extract With Info', 'face-extract-with-info'],
+          ['Extract With Rotation', 'face-extract-with-info-and-rotation'],
+          ['Extract Duplicate', 'face-extract-duplicate']
+        ]
+      },
+      'Video': {
+        items: [
+          ['System Video Set', 'system-video-set'],
+          ['System Video Get', 'system-video-get'],
+          ['Video Face Capture', 'video-face-capture'],
+          ['Video Face Match', 'video-face-match']
+        ]
+      },
       'Smartcard': {
         subcategories: {
           Config: [
@@ -967,7 +999,8 @@ internal static class WebUi
         }
         const value = field.value !== undefined ? field.value : '';
         const inputType = field.type || 'text';
-        return `<input id="${field.id}" type="${inputType}" value="${value}" placeholder="${field.placeholder || field.label}">`;
+        const stepAttr = field.step !== undefined ? ` step="${field.step}"` : '';
+        return `<input id="${field.id}" type="${inputType}" value="${value}" placeholder="${field.placeholder || field.label}"${stepAttr}>`;
       }).join('');
 
       formShell.innerHTML = `
@@ -1007,6 +1040,84 @@ internal static class WebUi
         clearForm();
         await postJson(endpoint, payload, operation);
       };
+    }
+
+    function showLogSetForm() {
+      showSmartcardConfigForm('System Log Set', '/api/system-log-set', 'System Log Set', [
+        { id: 'enable', key: 'enable', label: 'Enable', type: 'number', value: 0 },
+        { id: 'type', key: 'type', label: 'Type', type: 'number', value: 0 }
+      ]);
+    }
+
+    function showFaceSetForm() {
+      showSmartcardConfigForm('System Face Set', '/api/system-face-set', 'System Face Set', [
+        { id: 'matchThreshold', key: 'matchThreshold', label: 'Match Threshold', type: 'number', value: 0.8, step: '0.01' },
+        { id: 'detectAGS', key: 'detectAGS', label: 'Detect AGS', type: 'number', value: 0.5, step: '0.01' },
+        { id: 'detectPitch', key: 'detectPitch', label: 'Detect Pitch', type: 'number', value: 30, step: '0.01' },
+        { id: 'detectYaw', key: 'detectYaw', label: 'Detect Yaw', type: 'number', value: 30, step: '0.01' },
+        { id: 'detectRoll', key: 'detectRoll', label: 'Detect Roll', type: 'number', value: 30, step: '0.01' },
+        { id: 'detectLiveness', key: 'detectLiveness', label: 'Detect Liveness', type: 'number', value: 0.6, step: '0.01' },
+        { id: 'faceAttempts', key: 'faceAttempts', label: 'Face Attempts', type: 'number', value: 0 },
+        { id: 'faceTimeout', key: 'faceTimeout', label: 'Face Timeout', type: 'number', value: 10 },
+        { id: 'extractQualityOverride', key: 'extractQualityOverride', label: 'Extract Quality Override', type: 'number', value: 0 },
+        { id: 'license', key: 'license', label: 'License', type: 'number', value: 0 },
+        { id: 'multiFaces', key: 'multiFaces', label: 'Multi Faces', type: 'number', value: 0 },
+        { id: 'withMinimumSize', key: 'withMinimumSize', label: 'With Minimum Size', type: 'number', value: 0 },
+        { id: 'minimumFaceSize', key: 'minimumFaceSize', label: 'Minimum Face Size', type: 'number', value: 120 }
+      ]);
+    }
+
+    function showVideoSetForm() {
+      showSmartcardConfigForm('System Video Set', '/api/system-video-set', 'System Video Set', [
+        { id: 'detectPeriod', key: 'detectPeriod', label: 'Detect Period', type: 'number', value: 0 },
+        { id: 'frameWidth', key: 'frameWidth', label: 'Frame Width', type: 'number', value: 640 },
+        { id: 'frameHeight', key: 'frameHeight', label: 'Frame Height', type: 'number', value: 480 },
+        { id: 'frameRotatIon', key: 'frameRotatIon', label: 'Frame Rotation', type: 'number', value: 1 },
+        { id: 'cameraMode', key: 'cameraMode', label: 'Camera Mode', type: 'number', value: 0 },
+        { id: 'powerMode', key: 'powerMode', label: 'Power Mode', type: 'number', value: 0 },
+        { id: 'withCrop', key: 'withCrop', label: 'With Crop', type: 'number', value: 0 },
+        { id: 'cropX', key: 'cropX', label: 'Crop X', type: 'number', value: 0 },
+        { id: 'cropY', key: 'cropY', label: 'Crop Y', type: 'number', value: 0 },
+        { id: 'cropWidth', key: 'cropWidth', label: 'Crop Width', type: 'number', value: 0 },
+        { id: 'cropHeight', key: 'cropHeight', label: 'Crop Height', type: 'number', value: 0 },
+        { id: 'liveness', key: 'liveness', label: 'Liveness', type: 'number', value: 0 }
+      ]);
+    }
+
+    function showFaceImageForm(title, endpoint, operation, defaultImageType = 1) {
+      showSmartcardConfigForm(title, endpoint, operation, [
+        { id: 'imageType', key: 'imageType', label: 'Image Type', type: 'number', value: defaultImageType },
+        { id: 'imageDataBase64', key: 'imageDataBase64', label: 'Image Data', type: 'file', accept: '*/*' }
+      ]);
+    }
+
+    function showFaceVerifyForm() {
+      showSmartcardConfigForm('Face Verify', '/api/face-verify', 'Face Verify', [
+        { id: 'faceA', key: 'faceA', label: 'Face A', type: 'file', accept: '*/*' },
+        { id: 'faceB', key: 'faceB', label: 'Face B', type: 'file', accept: '*/*' }
+      ]);
+    }
+
+    function showFaceDuplicateForm() {
+      showSmartcardConfigForm('Face Extract Duplicate', '/api/face-extract-duplicate', 'Face Extract Duplicate', [
+        { id: 'imageDataBase64', key: 'imageDataBase64', label: 'Image Data', type: 'file', accept: '*/*' },
+        { id: 'rotation', key: 'rotation', label: 'Rotation', type: 'number', value: 0 }
+      ]);
+    }
+
+    function showVideoCaptureForm() {
+      showSmartcardConfigForm('Video Face Capture', '/api/video-face-capture', 'Video Face Capture', [
+        { id: 'timeout', key: 'timeout', label: 'Timeout', type: 'number', value: 10 },
+        { id: 'withRGB', key: 'withRGB', label: 'With RGB', type: 'number', value: 1 },
+        { id: 'withNIR', key: 'withNIR', label: 'With NIR', type: 'number', value: 1 }
+      ]);
+    }
+
+    function showVideoMatchForm() {
+      showSmartcardConfigForm('Video Face Match', '/api/video-face-match', 'Video Face Match', [
+        { id: 'timeout', key: 'timeout', label: 'Timeout', type: 'number', value: 10 },
+        { id: 'userTemplateBase64', key: 'userTemplateBase64', label: 'User Template', type: 'file', accept: '*/*' }
+      ]);
     }
 
     function showDesfireSetForm() {
@@ -1344,6 +1455,66 @@ internal static class WebUi
           break;
         case 'wiegand-detect':
           showTimeoutTypeForm('Wiegand Detect', '/api/wiegand-detect', 'Wiegand Detect');
+          break;
+        case 'system-log-set':
+          showLogSetForm();
+          break;
+        case 'system-log-get':
+          showTypeActionForm('System Log Get', '/api/system-log-get', 'System Log Get', 0);
+          break;
+        case 'log-delete-event':
+          showTypeActionForm('Delete Event Logs', '/api/log-delete-event', 'Delete Event Logs', 0);
+          break;
+        case 'log-get-event':
+          showTypeActionForm('Get Event Logs', '/api/log-get-event', 'Get Event Logs', 0);
+          break;
+        case 'log-delete-app':
+          showTypeActionForm('Delete App Logs', '/api/log-delete-app', 'Delete App Logs', 0);
+          break;
+        case 'log-get-app':
+          showTypeActionForm('Get App Logs', '/api/log-get-app', 'Get App Logs', 0);
+          break;
+        case 'log-delete-sys':
+          showTypeActionForm('Delete Sys Logs', '/api/log-delete-sys', 'Delete Sys Logs', 0);
+          break;
+        case 'log-get-sys':
+          showTypeActionForm('Get Sys Logs', '/api/log-get-sys', 'Get Sys Logs', 0);
+          break;
+        case 'system-face-set':
+          showFaceSetForm();
+          break;
+        case 'system-face-get':
+          showTypeActionForm('System Face Get', '/api/system-face-get', 'System Face Get', 0);
+          break;
+        case 'face-extract':
+          showFaceImageForm('Face Extract', '/api/face-extract', 'Face Extract', 1);
+          break;
+        case 'face-verify':
+          showFaceVerifyForm();
+          break;
+        case 'face-identify':
+          showFaceImageForm('Face Identify', '/api/face-identify', 'Face Identify', 1);
+          break;
+        case 'face-extract-with-info':
+          showFaceImageForm('Extract With Info', '/api/face-extract-with-info', 'Extract With Info', 1);
+          break;
+        case 'face-extract-with-info-and-rotation':
+          showFaceImageForm('Extract With Rotation', '/api/face-extract-with-info-and-rotation', 'Extract With Rotation', 1);
+          break;
+        case 'face-extract-duplicate':
+          showFaceDuplicateForm();
+          break;
+        case 'system-video-set':
+          showVideoSetForm();
+          break;
+        case 'system-video-get':
+          showTypeActionForm('System Video Get', '/api/system-video-get', 'System Video Get', 0);
+          break;
+        case 'video-face-capture':
+          showVideoCaptureForm();
+          break;
+        case 'video-face-match':
+          showVideoMatchForm();
           break;
         case 'smartcard-desfire-erase':
           showTimeoutTypeForm('Desfire Erase', '/api/smartcard-desfire-erase', 'Smartcard Desfire Erase');

@@ -24,6 +24,26 @@ app.MapPost("/api/system-mifare-set", ExecuteSystemMifareSet);
 app.MapPost("/api/system-mifare-get", ExecuteSystemMifareGet);
 app.MapPost("/api/system-wiegand-set", ExecuteSystemWiegandSet);
 app.MapPost("/api/system-wiegand-get", ExecuteSystemWiegandGet);
+app.MapPost("/api/system-log-set", ExecuteSystemLogSet);
+app.MapPost("/api/system-log-get", ExecuteSystemLogGet);
+app.MapPost("/api/log-delete-event", ExecuteLogDeleteEvent);
+app.MapPost("/api/log-get-event", ExecuteLogGetEvent);
+app.MapPost("/api/log-delete-app", ExecuteLogDeleteApp);
+app.MapPost("/api/log-get-app", ExecuteLogGetApp);
+app.MapPost("/api/log-delete-sys", ExecuteLogDeleteSys);
+app.MapPost("/api/log-get-sys", ExecuteLogGetSys);
+app.MapPost("/api/system-face-set", ExecuteSystemFaceSet);
+app.MapPost("/api/system-face-get", ExecuteSystemFaceGet);
+app.MapPost("/api/face-extract", ExecuteFaceExtract);
+app.MapPost("/api/face-verify", ExecuteFaceVerify);
+app.MapPost("/api/face-identify", ExecuteFaceIdentify);
+app.MapPost("/api/face-extract-with-info", ExecuteFaceExtractWithInfo);
+app.MapPost("/api/face-extract-with-info-and-rotation", ExecuteFaceExtractWithInfoAndRotation);
+app.MapPost("/api/face-extract-duplicate", ExecuteFaceExtractDuplicate);
+app.MapPost("/api/system-video-set", ExecuteSystemVideoSet);
+app.MapPost("/api/system-video-get", ExecuteSystemVideoGet);
+app.MapPost("/api/video-face-capture", ExecuteVideoFaceCapture);
+app.MapPost("/api/video-face-match", ExecuteVideoFaceMatch);
 app.MapPost("/api/smartcard-detect", ExecuteSmartcardDetect);
 app.MapPost("/api/smartcard-desfire-erase", ExecuteSmartcardDesfireErase);
 app.MapPost("/api/smartcard-desfire-format", ExecuteSmartcardDesfireFormat);
@@ -179,6 +199,106 @@ static async Task<IResult> ExecuteSystemWiegandSet(VisionA64Client client, Syste
 static async Task<IResult> ExecuteSystemWiegandGet(VisionA64Client client, SmartcardTypeRequest request, CancellationToken cancellationToken)
 {
     return await ExecuteSoap(client, cancellationToken, c => c.SystemWiegandGetAsync(request.Type, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemLogSet(VisionA64Client client, SystemLogSetRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemLogSetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemLogGet(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemLogGetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteLogDeleteEvent(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.LogDeleteEventAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteLogGetEvent(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.LogGetEventAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteLogDeleteApp(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.LogDeleteAppAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteLogGetApp(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.LogGetAppAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteLogDeleteSys(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.LogDeleteSysAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteLogGetSys(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.LogGetSysAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemFaceSet(VisionA64Client client, SystemFaceSetRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemFaceSetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemFaceGet(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemFaceGetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteFaceExtract(VisionA64Client client, FaceImageRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.FaceExtractAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteFaceVerify(VisionA64Client client, FaceVerifyRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.FaceVerifyAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteFaceIdentify(VisionA64Client client, FaceImageRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.FaceIdentifyAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteFaceExtractWithInfo(VisionA64Client client, FaceImageRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.FaceExtractWithInfoAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteFaceExtractWithInfoAndRotation(VisionA64Client client, FaceImageRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.FaceExtractWithInfoAndRotationAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteFaceExtractDuplicate(VisionA64Client client, FaceExtractDuplicateRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.FaceExtractDuplicateAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemVideoSet(VisionA64Client client, SystemVideoSetRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemVideoSetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteSystemVideoGet(VisionA64Client client, TypeRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.SystemVideoGetAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteVideoFaceCapture(VisionA64Client client, VideoFaceCaptureRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.VideoFaceCaptureAsync(request, cancellationToken));
+}
+
+static async Task<IResult> ExecuteVideoFaceMatch(VisionA64Client client, VideoFaceMatchRequest request, CancellationToken cancellationToken)
+{
+    return await ExecuteSoap(client, cancellationToken, c => c.VideoFaceMatchAsync(request, cancellationToken));
 }
 
 static async Task<IResult> ExecuteSmartcardDetect(VisionA64Client client, SmartcardTimeoutTypeRequest request, CancellationToken cancellationToken)

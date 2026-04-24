@@ -73,6 +73,41 @@ public sealed record SystemWiegandSetRequest(
     string? IdentifyFailCode,
     int IdentifyFailLength);
 
+public sealed record SystemLogSetRequest(int Enable, int Type);
+public sealed record TypeRequest(int Type);
+public sealed record SystemFaceSetRequest(
+    double MatchThreshold,
+    double DetectAGS,
+    double DetectPitch,
+    double DetectYaw,
+    double DetectRoll,
+    double DetectLiveness,
+    int FaceAttempts,
+    int FaceTimeout,
+    int ExtractQualityOverride,
+    int License,
+    int MultiFaces,
+    int WithMinimumSize,
+    int MinimumFaceSize);
+public sealed record FaceImageRequest(int ImageType, string? ImageDataBase64);
+public sealed record FaceVerifyRequest(string? FaceA, string? FaceB);
+public sealed record FaceExtractDuplicateRequest(string? ImageDataBase64, int Rotation);
+public sealed record SystemVideoSetRequest(
+    int DetectPeriod,
+    int FrameWidth,
+    int FrameHeight,
+    int FrameRotatIon,
+    int CameraMode,
+    int PowerMode,
+    int WithCrop,
+    int CropX,
+    int CropY,
+    int CropWidth,
+    int CropHeight,
+    int Liveness);
+public sealed record VideoFaceCaptureRequest(int Timeout, int WithRGB, int WithNIR);
+public sealed record VideoFaceMatchRequest(int Timeout, string? UserTemplateBase64);
+
 public sealed record SmartcardTimeoutTypeRequest(int Timeout, int Type);
 public sealed record SmartcardTimeoutRequest(int Timeout);
 public sealed record SmartcardDesfireWriteRequest(int Timeout, int Type, string? UserData, string? FaceDataBase64);
