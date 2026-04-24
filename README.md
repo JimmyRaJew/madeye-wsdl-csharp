@@ -25,14 +25,14 @@ The current menu groups are:
 - `System Settings`
 - `Maintenance`
 - `Users`
-- `Smartcard`
+- `Logs`
 - `Face`
 - `Video`
-- `Logs`
+- `Smartcard`
 
-The current implemented actions are grouped below so the browser surface is documented in one place.
+The current implemented operations are grouped below so the browser surface is documented in one place.
 
-System and maintenance:
+System core:
 
 - `System Check`
 - `System Check Extra`
@@ -41,6 +41,9 @@ System and maintenance:
 - `SystemDescriptionSet`
 - `SystemRestart`
 - `SystemFirmwareUpdate`
+
+System smartcard configuration:
+
 - `System Desfire Set`
 - `System Desfire Get`
 - `System Desfire Secondary Set`
@@ -61,7 +64,7 @@ Logging:
 - `Log Delete Sys`
 - `Log Get Sys`
 
-Face:
+Face and video:
 
 - `Face Extract`
 - `Face Verify`
@@ -71,9 +74,6 @@ Face:
 - `Face Extract Duplicate`
 - `System Face Set`
 - `System Face Get`
-
-Video:
-
 - `Video Face Capture`
 - `Video Face Match`
 - `System Video Set`
