@@ -153,6 +153,89 @@ User management:
 - `UserSeosDelete`
 - `UserSeosDeleteAll`
 
+Latest OpenAPI v6 additions not yet surfaced in the browser UI:
+
+Face template interop:
+
+- `FaceTemplateExtraction`
+- `FaceTemplateMatch`
+- `FaceTemplateMatchWiegand`
+- `FaceTemplateMatchWiegandString`
+
+System and device settings:
+
+- `SystemBluetoothGet`
+- `SystemBluetoothSet`
+- `SystemBuzzerActivate`
+- `SystemBuzzerGet`
+- `SystemBuzzerSet`
+- `SystemCommunicationSecurityGet`
+- `SystemCommunicationSecuritySet`
+- `SystemDatabaseReset`
+- `SystemElevatorGet`
+- `SystemElevatorSet`
+- `SystemExitPushButtonGet`
+- `SystemExitPushButtonSet`
+- `SystemFaceA64CommGet`
+- `SystemFaceA64CommSet`
+- `SystemFortressLedGet`
+- `SystemFortressLedSet`
+- `SystemFortressSerialGet`
+- `SystemFortressSerialSet`
+- `SystemGetAll`
+- `SystemLedBrightness`
+- `SystemLedRotate`
+- `SystemLedSet`
+- `SystemModeGet`
+- `SystemModeSet`
+- `SystemNTPGet`
+- `SystemNTPSet`
+- `SystemNetworkGet`
+- `SystemNetworkMAC8021XGet`
+- `SystemNetworkMAC8021XSet`
+- `SystemNetworkSet`
+- `SystemOSDPGet`
+- `SystemOSDPSet`
+- `SystemPanelFeedbackGet`
+- `SystemPanelFeedbackSet`
+- `SystemPassword`
+- `SystemPasswordSet`
+- `SystemRS485Get`
+- `SystemRS485Set`
+- `SystemRadarGet`
+- `SystemRadarSet`
+- `SystemRelayGet`
+- `SystemRelaySet`
+- `SystemRtmCacheClear`
+- `SystemRtmGet`
+- `SystemRtmSet`
+- `SystemSNMPGet`
+- `SystemSNMPSet`
+- `SystemSSLCertificate`
+- `SystemTamperGet`
+- `SystemTamperSet`
+- `SystemTimeGet`
+- `SystemTimeSet`
+- `SystemVersion`
+- `SystemWebConnectivity`
+- `SystemWebEnrollGet`
+- `SystemWebEnrollSet`
+- `SystemWifiConnectivity`
+- `SystemWifiGet`
+- `SystemWifiMac`
+- `SystemWifiSet`
+
+User and card administration:
+
+- `UserBadgeWiegandAdd`
+- `UserBadgeWiegandDelete`
+- `UserBadgeWiegandDeleteAll`
+- `UserBadgeWiegandListAll`
+- `UserDatabaseGet`
+- `UserDatabaseSet`
+- `UserIdentifyAddMulti`
+- `UserImage`
+
 ## Camera Endpoint
 
 The app currently targets:
