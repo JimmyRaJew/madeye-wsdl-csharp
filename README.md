@@ -25,8 +25,14 @@ The current menu groups are:
 - `System Settings`
 - `Maintenance`
 - `Users`
+- `Smartcard`
+- `Face`
+- `Video`
+- `Logs`
 
-The current implemented actions are:
+The current implemented actions are grouped below so the browser surface is documented in one place.
+
+System and maintenance:
 
 - `System Check`
 - `System Check Extra`
@@ -35,16 +41,69 @@ The current implemented actions are:
 - `SystemDescriptionSet`
 - `SystemRestart`
 - `SystemFirmwareUpdate`
+- `System Desfire Set`
+- `System Desfire Get`
+- `System Desfire Secondary Set`
+- `System Desfire Secondary Get`
+- `System Mifare Set`
+- `System Mifare Get`
+- `System Wiegand Set`
+- `System Wiegand Get`
+- `System Log Set`
+- `System Log Get`
+
+Logging:
+
+- `Log Delete Event`
+- `Log Get Event`
+- `Log Delete App`
+- `Log Get App`
+- `Log Delete Sys`
+- `Log Get Sys`
+
+Face:
+
+- `Face Extract`
+- `Face Verify`
+- `Face Identify`
+- `Face Extract With Info`
+- `Face Extract With Info + Rotation`
+- `Face Extract Duplicate`
+- `System Face Set`
+- `System Face Get`
+
+Video:
+
+- `Video Face Capture`
+- `Video Face Match`
+- `System Video Set`
+- `System Video Get`
+
+Smartcard operations:
+
+- `Smartcard Detect`
+- `Smartcard Desfire Erase`
+- `Smartcard Desfire Format`
+- `Smartcard Desfire Write`
+- `Smartcard Desfire Read`
+- `Smartcard Mifare Write`
+- `Smartcard Mifare Read`
+- `Smartcard Mifare Badge Write`
+- `Smartcard Mifare Badge Read`
+- `Smartcard Desfire Badge Create`
+- `Smartcard Desfire Badge Write`
+- `Smartcard Desfire Badge Read`
+- `Smartcard Desfire Face Create`
+- `Smartcard Desfire Face Write`
+- `Smartcard Desfire Face Read`
+- `Smartcard Ask Read`
+- `Wiegand Detect`
+- `CardUIDDetect`
+
+User management:
+
 - `UserIdentifyCount`
 - `UserIdentifyListAll`
-- `UserSmartcardCount`
-- `UserSmartcardListAll`
-- `UserElevatorCount`
-- `UserElevatorListAll`
-- `UserRestrictedCount`
-- `UserRestrictedListAll`
-- `UserScheduleCount`
-- `UserScheduleListAll`
 - `UserIdentifyAdd`
 - `UserIdentifyDelete`
 - `UserIdentifyDeleteAll`
@@ -58,6 +117,41 @@ The current implemented actions are:
 - `UserIdentifyTimeActivate`
 - `UserIdentifyTimeDeactivate`
 - `UserIdentifyTimeDeactivateAll`
+- `UserSmartcardCount`
+- `UserSmartcardListAll`
+- `UserSmartcardAdd`
+- `UserSmartcardAddMulti`
+- `UserSmartcardCheck`
+- `UserSmartcardDelete`
+- `UserSmartcardDeleteAll`
+- `UserSmartcardList`
+- `UserWiegandAdd`
+- `UserWiegandAddMulti`
+- `UserWiegandCheck`
+- `UserWiegandCount`
+- `UserWiegandDelete`
+- `UserWiegandDeleteAll`
+- `UserWiegandList`
+- `UserWiegandListAll`
+- `UserElevatorCount`
+- `UserElevatorListAll`
+- `UserElevatorAdd`
+- `UserElevatorAddMulti`
+- `UserElevatorCheck`
+- `UserElevatorDelete`
+- `UserElevatorDeleteAll`
+- `UserRestrictedCount`
+- `UserRestrictedListAll`
+- `UserScheduleCount`
+- `UserScheduleListAll`
+- `UserIdentifyRestrictAdd`
+- `UserIdentifyRestrictDelete`
+- `UserIdentifyRestrictDeleteAll`
+- `UserSeosAdd`
+- `UserSeosCheck`
+- `UserSeosCount`
+- `UserSeosDelete`
+- `UserSeosDeleteAll`
 
 ## Camera Endpoint
 
@@ -108,6 +202,9 @@ Current routes:
 
 - `GET /` returns the browser UI
 - `GET /api/health` returns a simple status object
+
+System and maintenance:
+
 - `POST /api/system-check`
 - `POST /api/system-check-extra`
 - `POST /api/system-device-id-get`
@@ -115,6 +212,67 @@ Current routes:
 - `POST /api/system-description-set`
 - `POST /api/system-restart`
 - `POST /api/system-firmware-update`
+- `POST /api/system-desfire-set`
+- `POST /api/system-desfire-get`
+- `POST /api/system-desfire-secondary-set`
+- `POST /api/system-desfire-secondary-get`
+- `POST /api/system-mifare-set`
+- `POST /api/system-mifare-get`
+- `POST /api/system-wiegand-set`
+- `POST /api/system-wiegand-get`
+- `POST /api/system-log-set`
+- `POST /api/system-log-get`
+
+Logging:
+
+- `POST /api/log-delete-event`
+- `POST /api/log-get-event`
+- `POST /api/log-delete-app`
+- `POST /api/log-get-app`
+- `POST /api/log-delete-sys`
+- `POST /api/log-get-sys`
+
+Face:
+
+- `POST /api/system-face-set`
+- `POST /api/system-face-get`
+- `POST /api/face-extract`
+- `POST /api/face-verify`
+- `POST /api/face-identify`
+- `POST /api/face-extract-with-info`
+- `POST /api/face-extract-with-info-and-rotation`
+- `POST /api/face-extract-duplicate`
+
+Video:
+
+- `POST /api/system-video-set`
+- `POST /api/system-video-get`
+- `POST /api/video-face-capture`
+- `POST /api/video-face-match`
+
+Smartcard and card-detection:
+
+- `POST /api/smartcard-detect`
+- `POST /api/smartcard-desfire-erase`
+- `POST /api/smartcard-desfire-format`
+- `POST /api/smartcard-desfire-write`
+- `POST /api/smartcard-desfire-read`
+- `POST /api/smartcard-mifare-write`
+- `POST /api/smartcard-mifare-read`
+- `POST /api/smartcard-mifare-badge-write`
+- `POST /api/smartcard-mifare-badge-read`
+- `POST /api/smartcard-desfire-badge-create`
+- `POST /api/smartcard-desfire-badge-write`
+- `POST /api/smartcard-desfire-badge-read`
+- `POST /api/smartcard-desfire-face-create`
+- `POST /api/smartcard-desfire-face-write`
+- `POST /api/smartcard-desfire-face-read`
+- `POST /api/smartcard-ask-read`
+- `POST /api/wiegand-detect`
+- `POST /api/card-uid-detect`
+
+User management:
+
 - `POST /api/user-identify-count`
 - `POST /api/user-identify-list-all`
 - `POST /api/user-identify-add`
@@ -132,12 +290,39 @@ Current routes:
 - `POST /api/user-identify-time-deactivate-all`
 - `POST /api/user-smartcard-count`
 - `POST /api/user-smartcard-list-all`
+- `POST /api/user-smartcard-add`
+- `POST /api/user-smartcard-add-multi`
+- `POST /api/user-smartcard-check`
+- `POST /api/user-smartcard-delete`
+- `POST /api/user-smartcard-delete-all`
+- `POST /api/user-smartcard-list`
+- `POST /api/user-wiegand-add`
+- `POST /api/user-wiegand-add-multi`
+- `POST /api/user-wiegand-check`
+- `POST /api/user-wiegand-count`
+- `POST /api/user-wiegand-delete`
+- `POST /api/user-wiegand-delete-all`
+- `POST /api/user-wiegand-list`
+- `POST /api/user-wiegand-list-all`
 - `POST /api/user-elevator-count`
 - `POST /api/user-elevator-list-all`
+- `POST /api/user-elevator-add`
+- `POST /api/user-elevator-add-multi`
+- `POST /api/user-elevator-check`
+- `POST /api/user-elevator-delete`
+- `POST /api/user-elevator-delete-all`
 - `POST /api/user-restricted-count`
 - `POST /api/user-restricted-list-all`
 - `POST /api/user-schedule-count`
 - `POST /api/user-schedule-list-all`
+- `POST /api/user-identify-restrict-add`
+- `POST /api/user-identify-restrict-delete`
+- `POST /api/user-identify-restrict-delete-all`
+- `POST /api/user-seos-add`
+- `POST /api/user-seos-check`
+- `POST /api/user-seos-count`
+- `POST /api/user-seos-delete`
+- `POST /api/user-seos-delete-all`
 
 The browser UI calls those routes with `fetch`.
 
@@ -165,6 +350,15 @@ The current Users section now includes both overview and identify-management act
 - identify delete-all, activate-all, and time-deactivate-all use `Type`
 - identify time-activate uses `BadgeID`, `StartTime`, and `EndTime`
 - identify restrict-enable uses `Status`
+
+Other common request shapes are:
+
+- `Timeout` and `Type` for card-detection and smartcard-maintenance actions
+- `UserData`, `FaceData`, and `Badge` for smartcard read/write actions
+- `ImageData` for face extraction and identify calls
+- `CurrentPassword` and `Password` for password changes
+- `Enable`, `Mode`, `Status`, `WithSSL`, and similar toggles for system settings
+- `StartTime` and `EndTime` for time-based access windows
 
 ## Extending The App
 
